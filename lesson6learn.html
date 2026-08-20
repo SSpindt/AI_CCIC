@@ -1,0 +1,5962 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Halcyon Cloud — DFW-3 Security Tour</title>
+<style>
+:root {
+  --bg-primary: #0d1117;
+  --bg-secondary: #161b22;
+  --bg-tertiary: #21262d;
+  --border-color: #30363d;
+  --text-primary: #e6edf3;
+  --text-secondary: #8b949e;
+  --accent-blue: #58a6ff;
+  --accent-green: #3fb950;
+  --accent-red: #f85149;
+  --accent-yellow: #d29922;
+  --accent-orange: #db6d28;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  min-height: 100vh;
+  overflow: hidden;
+  -webkit-text-size-adjust: 100%;
+}
+
+.mono {
+  font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+}
+
+.app-container {
+  display: grid;
+  grid-template-columns: 220px 1fr 320px;
+  grid-template-rows: 48px 1fr 32px;
+  height: 100vh;
+  height: 100dvh;
+  gap: 1px;
+  background: var(--border-color);
+}
+
+.header {
+  grid-column: 1 / -1;
+  background: var(--bg-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 600;
+}
+
+.logo-icon {
+  width: 28px;
+  height: 28px;
+  background: linear-gradient(135deg, var(--accent-blue), #1f6feb);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+}
+
+.header-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn {
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: inherit;
+}
+
+.btn:hover {
+  background: var(--border-color);
+  border-color: var(--text-secondary);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: var(--accent-blue);
+  border-color: var(--accent-blue);
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background: #4393e6;
+}
+
+.btn-primary:disabled {
+  background: var(--accent-blue);
+  opacity: 0.5;
+}
+
+.sidebar {
+  background: var(--bg-secondary);
+  padding: 16px;
+  overflow-y: auto;
+}
+
+.sidebar-title {
+  font-size: 11px;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  letter-spacing: 0.5px;
+  margin-bottom: 16px;
+  font-weight: 600;
+}
+
+.zone-map {
+  position: relative;
+  padding: 8px 0;
+}
+
+.zone-node {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  margin-bottom: 4px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+  position: relative;
+  background: transparent;
+  border: 1px solid transparent;
+}
+
+.zone-node.locked {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.zone-node.visited {
+  opacity: 1;
+  cursor: pointer;
+}
+
+.zone-node.current {
+  background: var(--bg-tertiary);
+  border-color: var(--accent-blue);
+}
+
+.zone-node:not(.locked):hover {
+  background: var(--bg-tertiary);
+}
+
+.zone-indicator {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--border-color);
+  border: 2px solid var(--text-secondary);
+  flex-shrink: 0;
+}
+
+.zone-node.visited .zone-indicator {
+  background: var(--accent-green);
+  border-color: var(--accent-green);
+}
+
+.zone-node.current .zone-indicator {
+  background: var(--accent-blue);
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 8px var(--accent-blue);
+}
+
+.zone-name {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.zone-connector {
+  position: absolute;
+  left: 24px;
+  top: 44px;
+  width: 2px;
+  height: 8px;
+  background: var(--border-color);
+}
+
+.zone-node.visited .zone-connector {
+  background: var(--accent-green);
+}
+
+.client-info {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-color);
+}
+
+.client-info-title {
+  font-size: 11px;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+  font-weight: 600;
+}
+
+.client-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.client-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.client-icon {
+  width: 20px;
+  height: 20px;
+  background: var(--bg-tertiary);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+}
+
+.client-item.healthcare .client-icon { background: rgba(248, 81, 73, 0.2); color: #f85149; }
+.client-item.financial .client-icon { background: rgba(63, 185, 80, 0.2); color: #3fb950; }
+.client-item.government .client-icon { background: rgba(88, 166, 255, 0.2); color: #58a6ff; }
+.client-item.retail .client-icon { background: rgba(210, 153, 34, 0.2); color: #d29922; }
+
+.data-at-risk {
+  margin-top: 12px;
+  padding: 10px;
+  background: rgba(248, 81, 73, 0.1);
+  border: 1px solid rgba(248, 81, 73, 0.3);
+  border-radius: 6px;
+  font-size: 10px;
+  color: var(--accent-red);
+}
+
+.data-at-risk-title {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.main-view {
+  background: var(--bg-primary);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+
+.scene-container {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+.scene {
+  position: absolute;
+  inset: 0;
+  display: none;
+}
+
+.scene.active {
+  display: block;
+}
+
+/*
+  RESPONSIVE SCENE ENGINE
+  Each scene's artwork is authored against a fixed 900x560 "design canvas".
+  All the internal pixel sizes (buildings, gates, vehicles, people) and the
+  percentage positions were tuned for this canvas, so instead of trying to
+  re-flow hundreds of absolutely-positioned pieces, we scale the whole canvas
+  as a single rigid unit. This keeps every real-world proportion, distance and
+  overlap identical at any viewport size — a person stays the right height next
+  to a door, a truck stays behind the car it's tailgating, etc.
+*/
+.scene-view {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 900px;
+  height: 560px;
+  transform: translate(-50%, -50%) scale(var(--scene-scale, 1));
+  transform-origin: center center;
+  overflow: hidden;
+}
+
+.hud-frame {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border: 3px solid rgba(88, 166, 255, 0.15);
+  border-radius: 8px;
+  z-index: 10;
+}
+
+.hud-corner {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  border: 2px solid rgba(88, 166, 255, 0.3);
+}
+
+.hud-corner.tl { top: 8px; left: 8px; border-right: none; border-bottom: none; }
+.hud-corner.tr { top: 8px; right: 8px; border-left: none; border-bottom: none; }
+.hud-corner.bl { bottom: 8px; left: 8px; border-right: none; border-top: none; }
+.hud-corner.br { bottom: 8px; right: 8px; border-left: none; border-top: none; }
+
+.hud-reticle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 20px;
+  height: 20px;
+  opacity: 0.3;
+}
+
+.hud-reticle::before, .hud-reticle::after {
+  content: '';
+  position: absolute;
+  background: var(--accent-blue);
+}
+
+.hud-reticle::before {
+  width: 2px;
+  height: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.hud-reticle::after {
+  height: 2px;
+  width: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.scene-bg {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+/* PERIMETER GATE */
+.scene-perimeter .scene-bg {
+  background: linear-gradient(180deg, #1e3a5f 0%, #2d1f3d 20%, #0d1117 50%, #1a1d24 100%);
+}
+
+.perimeter-sky {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 25%;
+  background: linear-gradient(180deg, #1e3a5f 0%, #2d1f3d 60%, #151820 100%);
+}
+
+.datacenter-building {
+  position: absolute;
+  top: 8%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 180px;
+  height: 80px;
+  background: linear-gradient(180deg, #2d333b 0%, #21262d 100%);
+  border: 2px solid #484f58;
+  border-bottom: none;
+}
+
+.building-windows {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  right: 10px;
+  bottom: 10px;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.building-window {
+  background: rgba(88, 166, 255, 0.15);
+  border: 1px solid #484f58;
+}
+
+.building-window.lit {
+  background: rgba(88, 166, 255, 0.4);
+  box-shadow: 0 0 8px rgba(88, 166, 255, 0.3);
+}
+
+.building-sign {
+  position: absolute;
+  top: -18px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--accent-blue);
+  text-shadow: 0 0 10px var(--accent-blue);
+  letter-spacing: 2px;
+}
+
+.secured-zone {
+  position: absolute;
+  top: 25%;
+  left: 0;
+  right: 0;
+  height: 30%;
+  background: linear-gradient(180deg, #151820 0%, #1a1d24 100%);
+}
+
+.secured-zone-label {
+  position: absolute;
+  top: 28%;
+  right: 10%;
+  font-size: 9px;
+  color: var(--accent-green);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  background: rgba(63, 185, 80, 0.15);
+  padding: 4px 10px;
+  border-radius: 3px;
+  border: 1px solid rgba(63, 185, 80, 0.3);
+  z-index: 6;
+}
+
+.perimeter-fence {
+  position: absolute;
+  top: 55%;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background: #484f58;
+  z-index: 5;
+}
+
+.fence-wire {
+  position: absolute;
+  top: -8px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: repeating-linear-gradient(90deg, #6e7681 0px, #6e7681 4px, transparent 4px, transparent 8px);
+}
+
+.fence-wire.wire2 {
+  top: -16px;
+}
+
+.fence-post {
+  position: absolute;
+  top: -40px;
+  width: 8px;
+  height: 46px;
+  background: linear-gradient(90deg, #373e47, #484f58, #373e47);
+}
+
+.fence-post:nth-child(3) { left: 5%; }
+.fence-post:nth-child(4) { left: 20%; }
+.fence-post:nth-child(5) { right: 20%; }
+.fence-post:nth-child(6) { right: 5%; }
+
+.public-zone {
+  position: absolute;
+  top: 55%;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(180deg, #1c2128 0%, #21262d 50%, #2d333b 100%);
+}
+
+.public-zone-label {
+  position: absolute;
+  bottom: 8%;
+  left: 8%;
+  font-size: 9px;
+  color: var(--accent-yellow);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  background: rgba(210, 153, 34, 0.15);
+  padding: 4px 10px;
+  border-radius: 3px;
+  border: 1px solid rgba(210, 153, 34, 0.3);
+  z-index: 6;
+}
+
+.road-vertical {
+  position: absolute;
+  top: 25%;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 120px;
+  background: linear-gradient(180deg, #373e47 0%, #484f58 100%);
+  border-left: 3px dashed #d29922;
+  border-right: 3px dashed #d29922;
+}
+
+.road-center-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 3px;
+  background: repeating-linear-gradient(180deg, #e6edf3 0px, #e6edf3 20px, transparent 20px, transparent 40px);
+}
+
+.gate-housing {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 160px;
+  height: 60px;
+  z-index: 10;
+}
+
+.gate-booth {
+  position: absolute;
+  top: 0;
+  right: -60px;
+  width: 50px;
+  height: 50px;
+  background: linear-gradient(180deg, #2d333b, #21262d);
+  border: 2px solid #484f58;
+  border-radius: 4px;
+}
+
+.booth-window {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  right: 8px;
+  height: 20px;
+  background: rgba(88, 166, 255, 0.2);
+  border-radius: 2px;
+}
+
+.gate-post-left {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 80px;
+  background: linear-gradient(90deg, #484f58, #6e7681, #484f58);
+  border-radius: 4px;
+}
+
+.gate-post-right {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 80px;
+  background: linear-gradient(90deg, #484f58, #6e7681, #484f58);
+  border-radius: 4px;
+}
+
+.gate-arm {
+  position: absolute;
+  top: 25%;
+  left: 20px;
+  right: 20px;
+  height: 10px;
+  background: repeating-linear-gradient(90deg, #f85149 0px, #f85149 15px, #e6edf3 15px, #e6edf3 30px);
+  border-radius: 5px;
+  transform-origin: left center;
+  transition: transform 1s ease-in-out;
+  z-index: 15;
+}
+
+.gate-arm.raised {
+  transform: rotate(-85deg);
+}
+
+.badge-reader-station {
+  position: absolute;
+  top: 62%;
+  left: 38%;
+  z-index: 20;
+}
+
+.reader-post {
+  width: 16px;
+  height: 60px;
+  background: linear-gradient(90deg, #373e47, #484f58, #373e47);
+  border-radius: 2px;
+  position: relative;
+}
+
+.reader-device {
+  position: absolute;
+  top: 8px;
+  left: -14px;
+  width: 44px;
+  height: 55px;
+  background: var(--bg-tertiary);
+  border: 3px solid var(--accent-yellow);
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  box-shadow: 0 0 12px rgba(210, 153, 34, 0.4);
+}
+
+.reader-screen {
+  width: 34px;
+  height: 22px;
+  background: #0d1117;
+  border-radius: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 7px;
+  color: var(--accent-green);
+  font-family: monospace;
+}
+
+.reader-light {
+  width: 8px;
+  height: 8px;
+  background: var(--accent-green);
+  border-radius: 50%;
+  box-shadow: 0 0 6px var(--accent-green);
+}
+
+.no-barrier-indicator {
+  position: absolute;
+  top: 70px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 7px;
+  color: var(--accent-red);
+  text-transform: uppercase;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.vehicle {
+  position: absolute;
+  width: 50px;
+  height: 70px;
+  transition: all 2s ease-in-out;
+  z-index: 8;
+}
+
+.vehicle-top {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 25px;
+  background: linear-gradient(180deg, #2d333b 0%, #21262d 100%);
+  border-radius: 8px 8px 0 0;
+}
+
+.vehicle-body {
+  position: absolute;
+  top: 20px;
+  left: 0;
+  width: 100%;
+  height: 50px;
+  background: linear-gradient(180deg, #484f58, #373e47);
+  border-radius: 6px;
+}
+
+.vehicle-windshield {
+  position: absolute;
+  top: 5px;
+  left: 8px;
+  right: 8px;
+  height: 15px;
+  background: linear-gradient(180deg, #58a6ff33, #1f6feb22);
+  border-radius: 3px;
+}
+
+.vehicle-lights {
+  position: absolute;
+  bottom: 5px;
+  left: 5px;
+  right: 5px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.vehicle-light {
+  width: 8px;
+  height: 4px;
+  background: #f85149;
+  border-radius: 2px;
+}
+
+.auth-vehicle {
+  left: calc(50% - 25px);
+  bottom: 38%;
+}
+
+.tailgate-vehicle {
+  left: calc(50% - 25px);
+  bottom: 8%;
+  opacity: 0;
+}
+
+.tailgate-vehicle .vehicle-body {
+  background: linear-gradient(180deg, #6e4a21, #5a3d1a);
+}
+
+/* Hotspots */
+.hotspot {
+  position: absolute;
+  cursor: grab;
+  z-index: 25;
+  transition: transform 0.2s, opacity 0.2s;
+  /* Invisible hit-area: the visible cue is the glow on the object art itself.
+     Transparent elements still receive clicks/drags, so interaction is intact. */
+  background: transparent;
+  border-radius: 6px;
+}
+
+.hotspot:active {
+  cursor: grabbing;
+}
+
+.hotspot.dragging {
+  opacity: 0.5;
+  transform: scale(0.95);
+}
+
+/* The old square overlay glow is retired in favour of a glow applied to the
+   actual object art (see .object-glow below). Kept as a no-op so existing
+   markup doesn't need to change. */
+.hotspot-glow { display: none; }
+
+/* ---- Object-silhouette glow ----
+   Applied directly to the real scene object (gate arm, scanner, door, etc.).
+   drop-shadow traces the rendered shape, so the glow hugs the object instead
+   of drawing a box around it. The object stays fully clickable/draggable
+   because we only add a filter — no overlay, no pointer-event changes. */
+.object-glow {
+  animation: object-glow-pulse 2.4s ease-in-out infinite;
+  will-change: filter;
+}
+@keyframes object-glow-pulse {
+  0%, 100% {
+    filter: drop-shadow(0 0 3px rgba(240, 185, 60, 0.55))
+            drop-shadow(0 0 6px rgba(240, 185, 60, 0.35));
+  }
+  50% {
+    filter: drop-shadow(0 0 7px rgba(255, 200, 70, 0.95))
+            drop-shadow(0 0 16px rgba(255, 190, 55, 0.7));
+  }
+}
+
+/* Once logged, settle into a steady soft green so students see it's done. */
+.object-glow.object-logged {
+  animation: none;
+  filter: drop-shadow(0 0 4px rgba(63, 185, 80, 0.7))
+          drop-shadow(0 0 9px rgba(63, 185, 80, 0.4));
+}
+
+/* Brighter blue while the student hovers/points at its hotspot. */
+.object-glow.object-hover {
+  animation: none;
+  filter: drop-shadow(0 0 6px rgba(88, 166, 255, 0.9))
+          drop-shadow(0 0 14px rgba(88, 166, 255, 0.6));
+}
+
+.hotspot-label {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--bg-secondary);
+  border: 1px solid var(--accent-yellow);
+  color: var(--text-primary);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.2s;
+  pointer-events: none;
+  margin-bottom: 4px;
+  z-index: 2;
+}
+
+.hotspot:hover .hotspot-label {
+  opacity: 1;
+}
+
+.hotspot.logged .hotspot-label {
+  border-color: var(--accent-green);
+}
+
+/* LOBBY */
+.scene-lobby .scene-bg {
+  background: linear-gradient(180deg, #1e2530 0%, #161b22 100%);
+}
+
+.lobby-floor {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 35%;
+  background: linear-gradient(180deg, #21262d 0%, #161b22 100%);
+  perspective: 500px;
+}
+
+.floor-tiles {
+  position: absolute;
+  inset: 0;
+  background: 
+    repeating-linear-gradient(90deg, transparent 0px, transparent 60px, #30363d44 60px, #30363d44 62px),
+    repeating-linear-gradient(180deg, transparent 0px, transparent 40px, #30363d44 40px, #30363d44 42px);
+  transform: rotateX(60deg);
+  transform-origin: top center;
+}
+
+.lobby-walls {
+  position: absolute;
+  top: 10%;
+  left: 5%;
+  right: 5%;
+  height: 55%;
+  background: linear-gradient(180deg, #2d333b 0%, #21262d 100%);
+  border-bottom: 4px solid #484f58;
+}
+
+.lobby-windows {
+  position: absolute;
+  top: 15%;
+  left: 8%;
+  display: flex;
+  gap: 20px;
+}
+
+.lobby-window {
+  width: 50px;
+  height: 70px;
+  background: linear-gradient(180deg, #3a506b 0%, #2d4159 50%, #1e3a5f 100%);
+  border: 3px solid #484f58;
+  border-radius: 3px;
+  position: relative;
+  box-shadow: inset 0 0 20px rgba(88, 166, 255, 0.1);
+}
+
+.lobby-window::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: #484f58;
+}
+
+.lobby-window::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 3px;
+  background: #484f58;
+  transform: translateX(-50%);
+}
+
+.lobby-window-right {
+  position: absolute;
+  top: 15%;
+  right: 25%;
+  display: flex;
+  gap: 20px;
+}
+
+.halcyon-logo-wall {
+  position: absolute;
+  top: 20%;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--accent-blue);
+  text-shadow: 0 0 20px var(--accent-blue);
+  letter-spacing: 4px;
+}
+
+.reception-desk {
+  position: absolute;
+  bottom: 15%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 200px;
+  height: 60px;
+  background: linear-gradient(180deg, #484f58, #373e47);
+  border-radius: 4px 4px 0 0;
+}
+
+.desk-top {
+  position: absolute;
+  top: 0;
+  left: -10px;
+  right: -10px;
+  height: 8px;
+  background: linear-gradient(90deg, #6e7681, #8b949e, #6e7681);
+  border-radius: 2px;
+}
+
+.desk-monitor {
+  position: absolute;
+  top: -40px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 50px;
+  height: 35px;
+  background: #1c2128;
+  border: 2px solid #484f58;
+  border-radius: 2px;
+}
+
+.desk-monitor::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 10px;
+  height: 8px;
+  background: #484f58;
+}
+
+.visitor-log-book {
+  position: absolute;
+  top: -15px;
+  right: 20px;
+  width: 35px;
+  height: 25px;
+  background: linear-gradient(180deg, #e6edf3, #c9d1d9);
+  border: 1px solid #8b949e;
+  border-radius: 2px;
+  transform: rotate(-5deg);
+}
+
+.visitor-log-book::before {
+  content: 'LOG';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 6px;
+  color: #21262d;
+  font-weight: bold;
+}
+
+.entry-door {
+  position: absolute;
+  bottom: 35%;
+  right: 15%;
+  width: 60px;
+  height: 100px;
+  background: linear-gradient(90deg, #2d333b, #373e47, #2d333b);
+  border: 3px solid #484f58;
+  border-radius: 4px 4px 0 0;
+  z-index: 30;
+}
+
+.door-window {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  right: 10px;
+  height: 40px;
+  background: linear-gradient(180deg, #1f6feb22, #0d111722);
+  border-radius: 2px;
+}
+
+.door-handle {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  width: 6px;
+  height: 15px;
+  background: #8b949e;
+  border-radius: 2px;
+}
+
+.person {
+  position: absolute;
+  bottom: 0;
+  width: 30px;
+  height: 70px;
+  z-index: 20;
+  transition: left 3s ease-in-out, right 3s ease-in-out, bottom 2s ease-in-out, opacity 0.3s;
+}
+
+.person-head {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 16px;
+  height: 16px;
+  background: #c9d1d9;
+  border-radius: 50%;
+}
+
+.person-body {
+  position: absolute;
+  top: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 20px;
+  height: 35px;
+  border-radius: 4px 4px 0 0;
+}
+
+.person-legs {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 18px;
+  height: 17px;
+  background: #373e47;
+  border-radius: 0 0 4px 4px;
+}
+
+.person.employee .person-body { background: #1f6feb; }
+.person.contractor .person-body { background: #db6d28; }
+.person.tech .person-body { background: #3fb950; }
+.person.vendor .person-body { background: #8b949e; }
+.person.visitor .person-body { background: #8957e5; }
+.person.security .person-body { background: #1c2128; border: 2px solid #484f58; }
+.person.worker .person-body { background: #db6d28; }
+
+.badge {
+  position: absolute;
+  top: 22px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 8px;
+  height: 10px;
+  background: #d29922;
+  border-radius: 1px;
+}
+
+.equipment-case {
+  position: absolute;
+  width: 25px;
+  height: 35px;
+  background: linear-gradient(180deg, #484f58, #373e47);
+  border-radius: 3px;
+  border: 1px solid #6e7681;
+}
+
+/* MANTRAP - BOTH DOORS PROPPED OPEN */
+.scene-mantrap .scene-bg {
+  background: linear-gradient(180deg, #0d1117 0%, #161b22 100%);
+}
+
+.mantrap-room {
+  position: absolute;
+  top: 5%;
+  left: 5%;
+  right: 5%;
+  bottom: 10%;
+}
+
+.mantrap-ceiling {
+  position: absolute;
+  top: 0;
+  left: 10%;
+  right: 10%;
+  height: 8%;
+  background: linear-gradient(180deg, #1c2128 0%, #21262d 100%);
+  border-bottom: 3px solid #30363d;
+}
+
+.ceiling-light {
+  position: absolute;
+  bottom: 0;
+  width: 60px;
+  height: 10px;
+  background: linear-gradient(180deg, #e6edf3 0%, #8b949e 100%);
+  border-radius: 0 0 4px 4px;
+}
+
+.ceiling-light.light1 { left: 20%; }
+.ceiling-light.light2 { left: 50%; transform: translateX(-50%); }
+.ceiling-light.light3 { right: 20%; }
+
+.ceiling-camera {
+  position: absolute;
+  bottom: -15px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 24px;
+  height: 20px;
+  background: #21262d;
+  border: 2px solid #484f58;
+  border-radius: 4px;
+}
+
+.camera-lens {
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 10px;
+  height: 10px;
+  background: #0d1117;
+  border-radius: 50%;
+  border: 2px solid #6e7681;
+}
+
+.camera-lens::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 4px;
+  height: 4px;
+  background: var(--accent-red);
+  border-radius: 50%;
+  animation: blink-slow 2s infinite;
+}
+
+@keyframes blink-slow {
+  0%, 90%, 100% { opacity: 1; }
+  95% { opacity: 0.3; }
+}
+
+.mantrap-lobby-area {
+  position: absolute;
+  left: 0;
+  top: 8%;
+  width: 25%;
+  bottom: 0;
+  background: linear-gradient(90deg, #1c2128 0%, #21262d 100%);
+  border-right: 4px solid #30363d;
+}
+
+.lobby-label {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 9px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  background: var(--bg-tertiary);
+  padding: 4px 8px;
+  border-radius: 3px;
+}
+
+.waiting-person {
+  position: absolute;
+  bottom: 20%;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.mantrap-server-area {
+  position: absolute;
+  right: 0;
+  top: 8%;
+  width: 25%;
+  bottom: 0;
+  background: linear-gradient(90deg, #161b22 0%, #0d1117 100%);
+  border-left: 4px solid #30363d;
+}
+
+.server-label {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 9px;
+  color: var(--accent-green);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  background: rgba(63, 185, 80, 0.15);
+  padding: 4px 8px;
+  border-radius: 3px;
+  border: 1px solid rgba(63, 185, 80, 0.3);
+}
+
+.mini-rack {
+  position: absolute;
+  bottom: 15%;
+  width: 35px;
+  height: 120px;
+  background: linear-gradient(90deg, #21262d, #2d333b, #21262d);
+  border: 2px solid #484f58;
+  border-radius: 3px;
+}
+
+.mini-rack.rack1 { left: 15%; }
+.mini-rack.rack2 { right: 15%; }
+
+.mini-rack::before {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  background: repeating-linear-gradient(180deg,
+    #0d1117 0px, #0d1117 8px,
+    #161b22 8px, #161b22 10px);
+}
+
+.mini-rack-led {
+  position: absolute;
+  right: 6px;
+  width: 3px;
+  height: 3px;
+  background: var(--accent-green);
+  border-radius: 50%;
+  box-shadow: 0 0 4px var(--accent-green);
+}
+
+.mini-rack-led:nth-child(1) { top: 15%; }
+.mini-rack-led:nth-child(2) { top: 35%; }
+.mini-rack-led:nth-child(3) { top: 55%; }
+.mini-rack-led:nth-child(4) { top: 75%; }
+
+.mantrap-vestibule {
+  position: absolute;
+  left: 25%;
+  right: 25%;
+  top: 8%;
+  bottom: 0;
+  background: linear-gradient(180deg, #21262d 0%, #1c2128 50%, #161b22 100%);
+  border-left: 4px solid #484f58;
+  border-right: 4px solid #484f58;
+}
+
+.vestibule-floor {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 25%;
+  background: linear-gradient(180deg, #2d333b 0%, #373e47 100%);
+}
+
+.floor-marking {
+  position: absolute;
+  bottom: 30%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80%;
+  height: 4px;
+  background: var(--accent-yellow);
+  opacity: 0.5;
+}
+
+.floor-marking::before,
+.floor-marking::after {
+  content: '';
+  position: absolute;
+  top: -20px;
+  width: 4px;
+  height: 20px;
+  background: var(--accent-yellow);
+  opacity: 0.5;
+}
+
+.floor-marking::before { left: 0; }
+.floor-marking::after { right: 0; }
+
+.weight-sensor {
+  position: absolute;
+  bottom: 5%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60%;
+  height: 15px;
+  background: #484f58;
+  border: 2px solid #6e7681;
+  border-radius: 2px;
+}
+
+.weight-sensor-label {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 6px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.airlock-sign {
+  position: absolute;
+  top: 5%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--bg-tertiary);
+  border: 2px solid var(--accent-red);
+  padding: 8px 16px;
+  border-radius: 4px;
+  text-align: center;
+}
+
+.airlock-sign-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--accent-red);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.airlock-sign-subtitle {
+  font-size: 8px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+.status-panel {
+  position: absolute;
+  top: 20%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 120px;
+  background: #0d1117;
+  border: 2px solid var(--accent-red);
+  border-radius: 4px;
+  padding: 8px;
+  box-shadow: 0 0 12px rgba(248, 81, 73, 0.3);
+}
+
+.status-panel-title {
+  font-size: 7px;
+  color: var(--accent-red);
+  text-transform: uppercase;
+  text-align: center;
+  margin-bottom: 6px;
+  letter-spacing: 1px;
+  font-weight: 600;
+}
+
+.status-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 8px;
+  margin-bottom: 4px;
+}
+
+.status-row:last-child {
+  margin-bottom: 0;
+}
+
+.status-label {
+  color: var(--text-secondary);
+}
+
+.status-value {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.status-dot.green { background: var(--accent-green); box-shadow: 0 0 4px var(--accent-green); }
+.status-dot.red { background: var(--accent-red); box-shadow: 0 0 4px var(--accent-red); animation: blink-red 1s infinite; }
+.status-dot.yellow { background: var(--accent-yellow); }
+
+.status-text {
+  color: var(--text-primary);
+}
+
+.status-text.alert {
+  color: var(--accent-red);
+}
+
+/* Outer door (propped open with wedge) */
+.mantrap-outer-door {
+  position: absolute;
+  left: -4px;
+  top: 15%;
+  width: 40px;
+  height: 70%;
+  background: linear-gradient(90deg, #484f58 0%, #6e7681 50%, #484f58 100%);
+  border: 3px solid #8b949e;
+  border-radius: 4px;
+  z-index: 10;
+  transform-origin: left center;
+  transform: perspective(300px) rotateY(35deg);
+}
+
+.outer-door-window {
+  position: absolute;
+  top: 10%;
+  left: 15%;
+  right: 15%;
+  height: 30%;
+  background: linear-gradient(180deg, rgba(88, 166, 255, 0.1) 0%, rgba(13, 17, 23, 0.8) 100%);
+  border: 2px solid #6e7681;
+  border-radius: 2px;
+}
+
+.outer-door-handle {
+  position: absolute;
+  right: 5px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 6px;
+  height: 20px;
+  background: #8b949e;
+  border-radius: 2px;
+}
+
+.outer-door-status {
+  position: absolute;
+  bottom: 10%;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 6px;
+  color: var(--accent-red);
+  text-transform: uppercase;
+  background: rgba(248, 81, 73, 0.2);
+  padding: 2px 6px;
+  border-radius: 2px;
+  white-space: nowrap;
+}
+
+.outer-reader {
+  position: absolute;
+  left: -35px;
+  top: 40%;
+  width: 28px;
+  height: 45px;
+  background: var(--bg-tertiary);
+  border: 2px solid var(--accent-red);
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 5px;
+  gap: 3px;
+  box-shadow: 0 0 8px rgba(248, 81, 73, 0.3);
+}
+
+.outer-reader .reader-mini-screen {
+  color: var(--accent-red);
+}
+
+.outer-reader .reader-mini-light {
+  background: var(--accent-red);
+  box-shadow: 0 0 4px var(--accent-red);
+  animation: blink-red 1s infinite;
+}
+
+.reader-mini-screen {
+  width: 20px;
+  height: 12px;
+  background: #0d1117;
+  border-radius: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 5px;
+  color: var(--accent-green);
+}
+
+.reader-mini-light {
+  width: 6px;
+  height: 6px;
+  background: var(--accent-green);
+  border-radius: 50%;
+  box-shadow: 0 0 4px var(--accent-green);
+}
+
+/* Inner door (propped open with wedge) */
+.mantrap-inner-door {
+  position: absolute;
+  right: -4px;
+  top: 15%;
+  width: 40px;
+  height: 70%;
+  background: linear-gradient(90deg, #484f58 0%, #6e7681 50%, #484f58 100%);
+  border: 3px solid #8b949e;
+  border-radius: 4px;
+  z-index: 10;
+  transform-origin: right center;
+  transform: perspective(300px) rotateY(-35deg);
+}
+
+.inner-door-window {
+  position: absolute;
+  top: 10%;
+  left: 15%;
+  right: 15%;
+  height: 30%;
+  background: linear-gradient(180deg, rgba(63, 185, 80, 0.1) 0%, rgba(13, 17, 23, 0.8) 100%);
+  border: 2px solid #6e7681;
+  border-radius: 2px;
+}
+
+.inner-door-handle {
+  position: absolute;
+  left: 5px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 6px;
+  height: 20px;
+  background: #8b949e;
+  border-radius: 2px;
+}
+
+.inner-door-status {
+  position: absolute;
+  bottom: 10%;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 6px;
+  color: var(--accent-red);
+  text-transform: uppercase;
+  background: rgba(248, 81, 73, 0.2);
+  padding: 2px 6px;
+  border-radius: 2px;
+  white-space: nowrap;
+}
+
+.inner-reader {
+  position: absolute;
+  right: -35px;
+  top: 40%;
+  width: 28px;
+  height: 45px;
+  background: var(--bg-tertiary);
+  border: 2px solid var(--accent-red);
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 5px;
+  gap: 3px;
+  box-shadow: 0 0 8px rgba(248, 81, 73, 0.3);
+}
+
+.inner-reader .reader-mini-screen {
+  color: var(--accent-red);
+}
+
+.inner-reader .reader-mini-light {
+  background: var(--accent-red);
+  box-shadow: 0 0 4px var(--accent-red);
+  animation: blink-red 1s infinite;
+}
+
+@keyframes blink-red {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+/* Door wedges - one for each door */
+.door-wedge-outer {
+  position: absolute;
+  left: 8%;
+  bottom: 26%;
+  z-index: 15;
+}
+
+.door-wedge-inner {
+  position: absolute;
+  right: 8%;
+  bottom: 26%;
+  z-index: 15;
+}
+
+.wedge-shape {
+  width: 0;
+  height: 0;
+  border-left: 20px solid transparent;
+  border-right: 20px solid transparent;
+  border-bottom: 25px solid #db6d28;
+  filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.5));
+}
+
+.wedge-label {
+  position: absolute;
+  top: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 7px;
+  color: var(--accent-orange);
+  text-transform: uppercase;
+  white-space: nowrap;
+  background: rgba(219, 109, 40, 0.2);
+  padding: 2px 6px;
+  border-radius: 2px;
+}
+
+.mantrap-person {
+  position: absolute;
+  bottom: 30%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 12;
+}
+
+.alert-banner {
+  position: absolute;
+  bottom: 5%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(248, 81, 73, 0.15);
+  border: 2px solid var(--accent-red);
+  border-radius: 6px;
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 20;
+}
+
+.alert-icon {
+  font-size: 16px;
+}
+
+.alert-text {
+  font-size: 10px;
+  color: var(--accent-red);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 600;
+}
+
+/* SERVER HALL - SHOULDER SURFING VIEW */
+.scene-serverhall .scene-bg {
+  background: linear-gradient(180deg, #0d1117 0%, #161b22 50%, #0d1117 100%);
+}
+
+.server-hall-bg {
+  position: absolute;
+  inset: 0;
+}
+
+/* Background server racks with open cages */
+.bg-server-racks {
+  position: absolute;
+  top: 2%;
+  left: 0;
+  right: 0;
+  height: 40%;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  padding: 0 5%;
+}
+
+.bg-rack {
+  width: 50px;
+  height: 100%;
+  background: linear-gradient(90deg, #21262d, #2d333b, #21262d);
+  border: 2px solid #484f58;
+  border-radius: 4px;
+  position: relative;
+}
+
+.bg-rack::before {
+  content: '';
+  position: absolute;
+  inset: 5px;
+  background: repeating-linear-gradient(180deg, 
+    #0d1117 0px, #0d1117 10px, 
+    #161b22 10px, #161b22 12px);
+}
+
+.bg-rack-leds {
+  position: absolute;
+  right: 6px;
+  top: 10%;
+  bottom: 10%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.bg-rack-led {
+  width: 3px;
+  height: 3px;
+  background: var(--accent-green);
+  border-radius: 50%;
+  box-shadow: 0 0 4px var(--accent-green);
+}
+
+.bg-rack-led.amber {
+  background: var(--accent-yellow);
+  box-shadow: 0 0 4px var(--accent-yellow);
+}
+
+.bg-rack-led.red {
+  background: var(--accent-red);
+  box-shadow: 0 0 4px var(--accent-red);
+}
+
+/* Client data labels on racks */
+.rack-label {
+  position: absolute;
+  top: 3px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 5px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  background: #0d1117;
+  padding: 1px 3px;
+  border-radius: 2px;
+  white-space: nowrap;
+}
+
+/* Open cage doors */
+.cage-door {
+  position: absolute;
+  left: -15px;
+  top: 0;
+  width: 18px;
+  height: 100%;
+  background: linear-gradient(90deg, #30363d, #484f58);
+  border: 1px solid #6e7681;
+  transform-origin: left center;
+  transform: perspective(100px) rotateY(60deg);
+  z-index: 5;
+}
+
+.cage-mesh {
+  position: absolute;
+  inset: 2px;
+  background: 
+    repeating-linear-gradient(0deg, transparent 0px, transparent 6px, #6e768144 6px, #6e768144 7px),
+    repeating-linear-gradient(90deg, transparent 0px, transparent 6px, #6e768144 6px, #6e768144 7px);
+}
+
+.bg-rack.has-cage .cage-door {
+  display: block;
+}
+
+/* Password warning */
+.password-warning {
+  position: absolute;
+  top: 8%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(248, 81, 73, 0.15);
+  border: 2px solid var(--accent-red);
+  border-radius: 6px;
+  padding: 8px 16px;
+  z-index: 25;
+  text-align: center;
+}
+
+.password-warning-icon {
+  font-size: 18px;
+  margin-bottom: 2px;
+}
+
+.password-warning-text {
+  font-size: 10px;
+  color: var(--accent-red);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 600;
+}
+
+/* Shoulder surfing scene - large foreground */
+.shoulder-surf-scene {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 70%;
+}
+
+/* Person at terminal (from behind - large, no arms) */
+.tech-from-behind {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 180px;
+  height: 300px;
+  z-index: 10;
+}
+
+.tech-back-head {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 65px;
+  height: 65px;
+  background: radial-gradient(circle at 50% 40%, #c9d1d9 0%, #a8b1bd 100%);
+  border-radius: 50%;
+}
+
+.tech-hair {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 70px;
+  height: 35px;
+  background: #373e47;
+  border-radius: 50% 50% 0 0;
+}
+
+.tech-back-body {
+  position: absolute;
+  top: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 160px;
+  height: 240px;
+  background: linear-gradient(180deg, #3fb950 0%, #2ea043 100%);
+  border-radius: 40px 40px 0 0;
+}
+
+.tech-badge-lanyard {
+  position: absolute;
+  top: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 45px;
+  background: var(--accent-yellow);
+}
+
+.tech-badge-back {
+  position: absolute;
+  top: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 30px;
+  height: 40px;
+  background: linear-gradient(180deg, #e6edf3, #c9d1d9);
+  border-radius: 4px;
+  border: 2px solid #8b949e;
+}
+
+/* Second person standing next to tech */
+.coworker-person {
+  position: absolute;
+  bottom: 0;
+  left: 20%;
+  width: 120px;
+  height: 240px;
+  z-index: 8;
+}
+
+.coworker-head {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 50px;
+  height: 50px;
+  background: radial-gradient(circle at 50% 40%, #c9d1d9 0%, #a8b1bd 100%);
+  border-radius: 50%;
+}
+
+.coworker-hair {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 55px;
+  height: 28px;
+  background: #5a3d1a;
+  border-radius: 50% 50% 0 0;
+}
+
+.coworker-body {
+  position: absolute;
+  top: 45px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100px;
+  height: 195px;
+  background: linear-gradient(180deg, #1f6feb 0%, #1a5cc7 100%);
+  border-radius: 30px 30px 0 0;
+}
+
+.coworker-badge-lanyard {
+  position: absolute;
+  top: 45px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 3px;
+  height: 35px;
+  background: var(--accent-yellow);
+}
+
+.coworker-badge {
+  position: absolute;
+  top: 75px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 24px;
+  height: 32px;
+  background: linear-gradient(180deg, #e6edf3, #c9d1d9);
+  border-radius: 3px;
+  border: 2px solid #8b949e;
+}
+
+/* The KVM terminal - prominent */
+.kvm-terminal {
+  position: absolute;
+  bottom: 58%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 5;
+}
+
+.kvm-monitor-large {
+  width: 260px;
+  height: 170px;
+  background: #1c2128;
+  border: 5px solid #484f58;
+  border-radius: 8px;
+  position: relative;
+  box-shadow: 0 0 30px rgba(0,0,0,0.5);
+}
+
+.kvm-screen-large {
+  position: absolute;
+  inset: 6px;
+  background: #0d1117;
+  border-radius: 4px;
+  padding: 10px;
+  font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+  font-size: 10px;
+  color: var(--accent-green);
+  overflow: hidden;
+}
+
+.terminal-line {
+  margin-bottom: 5px;
+  line-height: 1.4;
+}
+
+.terminal-line.dimmed {
+  color: var(--text-secondary);
+}
+
+.terminal-line.prompt {
+  color: var(--accent-blue);
+}
+
+.password-field {
+  display: inline;
+  color: var(--accent-yellow);
+  background: rgba(210, 153, 34, 0.15);
+  padding: 1px 4px;
+  border-radius: 2px;
+  font-weight: bold;
+}
+
+.cursor-blink {
+  display: inline-block;
+  width: 7px;
+  height: 12px;
+  background: var(--accent-green);
+  animation: cursor-blink 1s infinite;
+  vertical-align: middle;
+  margin-left: 2px;
+}
+
+@keyframes cursor-blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+.kvm-stand-large {
+  width: 50px;
+  height: 25px;
+  background: linear-gradient(180deg, #484f58, #373e47);
+  margin: 0 auto;
+  border-radius: 0 0 6px 6px;
+}
+
+.kvm-base {
+  width: 100px;
+  height: 12px;
+  background: #373e47;
+  margin: 0 auto;
+  border-radius: 4px;
+}
+
+/* Shoulder surfer (vendor looking over) */
+.shoulder-surfer {
+  position: absolute;
+  bottom: 5%;
+  right: 5%;
+  z-index: 15;
+}
+
+.surfer-body {
+  position: relative;
+  width: 100px;
+  height: 200px;
+}
+
+.surfer-head {
+  position: absolute;
+  top: 0;
+  left: 30%;
+  width: 55px;
+  height: 55px;
+  background: radial-gradient(circle at 50% 40%, #c9d1d9 0%, #a8b1bd 100%);
+  border-radius: 50%;
+}
+
+.surfer-face {
+  position: absolute;
+  top: 50%;
+  left: 30%;
+  width: 30px;
+  height: 25px;
+  background: #c9d1d9;
+  border-radius: 0 50% 50% 0;
+}
+
+.surfer-eye {
+  position: absolute;
+  top: 18px;
+  left: 35px;
+  width: 7px;
+  height: 7px;
+  background: #21262d;
+  border-radius: 50%;
+}
+
+.surfer-torso {
+  position: absolute;
+  top: 50px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90px;
+  height: 150px;
+  background: linear-gradient(180deg, #8b949e 0%, #6e7681 100%);
+  border-radius: 25px 25px 0 0;
+}
+
+.surfer-lean-indicator {
+  position: absolute;
+  top: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 9px;
+  color: var(--accent-red);
+  text-transform: uppercase;
+  background: rgba(248, 81, 73, 0.2);
+  padding: 4px 10px;
+  border-radius: 4px;
+  white-space: nowrap;
+  border: 1px solid var(--accent-red);
+}
+
+/* LOADING DOCK - REALISTIC */
+.scene-loadingdock .scene-bg {
+  background: linear-gradient(180deg, #1c2128 0%, #161b22 100%);
+}
+
+/* Dock structure */
+.dock-ceiling {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 15%;
+  background: linear-gradient(180deg, #21262d 0%, #2d333b 100%);
+  border-bottom: 4px solid #484f58;
+}
+
+.ceiling-beam {
+  position: absolute;
+  bottom: 0;
+  height: 15px;
+  width: 20px;
+  background: #484f58;
+}
+
+.ceiling-beam:nth-child(1) { left: 15%; }
+.ceiling-beam:nth-child(2) { left: 35%; }
+.ceiling-beam:nth-child(3) { left: 55%; }
+.ceiling-beam:nth-child(4) { left: 75%; }
+
+.dock-light {
+  position: absolute;
+  bottom: -5px;
+  width: 40px;
+  height: 15px;
+  background: linear-gradient(180deg, #e6edf3, #c9d1d9);
+  border-radius: 0 0 4px 4px;
+}
+
+.dock-light:nth-child(5) { left: 25%; }
+.dock-light:nth-child(6) { left: 65%; }
+
+.dock-walls {
+  position: absolute;
+  top: 15%;
+  left: 0;
+  right: 0;
+  height: 50%;
+  background: linear-gradient(180deg, #2d333b 0%, #21262d 100%);
+}
+
+.dock-floor {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 35%;
+  background: linear-gradient(180deg, #484f58 0%, #373e47 50%, #2d333b 100%);
+}
+
+.floor-lines {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(90deg,
+    transparent 0px, transparent 80px,
+    #6e768133 80px, #6e768133 82px);
+}
+
+/* Loading bay doors */
+.loading-bay {
+  position: absolute;
+  top: 15%;
+  width: 28%;
+  height: 50%;
+  background: #161b22;
+  border: 4px solid #484f58;
+  border-bottom: none;
+}
+
+.loading-bay.bay1 { left: 5%; }
+.loading-bay.bay2 { right: 5%; }
+
+.rollup-door {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 100%;
+  background: repeating-linear-gradient(180deg,
+    #6e7681 0px, #6e7681 10px,
+    #484f58 10px, #484f58 12px);
+  border-radius: 4px 4px 0 0;
+}
+
+.rollup-door.open {
+  height: 20%;
+}
+
+.bay-number {
+  position: absolute;
+  top: -25px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent-yellow);
+}
+
+/* Delivery truck */
+.delivery-truck {
+  position: absolute;
+  bottom: 35%;
+  right: 3%;
+  width: 140px;
+  height: 100px;
+  z-index: 10;
+}
+
+.truck-cab {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 45px;
+  height: 55px;
+  background: linear-gradient(180deg, #1f6feb, #1a5cc7);
+  border-radius: 4px 4px 0 0;
+}
+
+.truck-windshield {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  right: 5px;
+  height: 25px;
+  background: linear-gradient(180deg, #58a6ff33, #1f6feb22);
+  border-radius: 3px;
+}
+
+.truck-door {
+  position: absolute;
+  bottom: 5px;
+  left: 5px;
+  right: 5px;
+  height: 20px;
+  background: #1a5cc7;
+  border: 1px solid #58a6ff44;
+  border-radius: 2px;
+}
+
+.truck-body {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 90px;
+  height: 70px;
+  background: linear-gradient(180deg, #e6edf3, #c9d1d9);
+  border: 2px solid #8b949e;
+  border-radius: 4px 4px 0 0;
+}
+
+.truck-body-stripe {
+  position: absolute;
+  bottom: 15px;
+  left: 0;
+  right: 0;
+  height: 8px;
+  background: #1f6feb;
+}
+
+.truck-logo {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 8px;
+  font-weight: 600;
+  color: #484f58;
+  text-transform: uppercase;
+}
+
+.truck-wheels {
+  position: absolute;
+  bottom: -10px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 10px;
+}
+
+.truck-wheel {
+  width: 18px;
+  height: 18px;
+  background: #21262d;
+  border: 3px solid #484f58;
+  border-radius: 50%;
+}
+
+/* Pallet and boxes */
+.pallet {
+  position: absolute;
+  bottom: 35%;
+  width: 60px;
+  height: 10px;
+  background: #8b6914;
+  border-radius: 2px;
+}
+
+.pallet::before {
+  content: '';
+  position: absolute;
+  bottom: -5px;
+  left: 5px;
+  right: 5px;
+  height: 5px;
+  background: repeating-linear-gradient(90deg,
+    #6e4a21 0px, #6e4a21 8px,
+    transparent 8px, transparent 12px);
+}
+
+.pallet.pallet1 { left: 15%; }
+.pallet.pallet2 { left: 40%; }
+
+.cargo-box {
+  position: absolute;
+  background: linear-gradient(180deg, #8b6914, #6e4a21);
+  border: 1px solid #5a3d1a;
+  border-radius: 2px;
+}
+
+.cargo-box.box1 { bottom: 38%; left: 17%; width: 25px; height: 30px; }
+.cargo-box.box2 { bottom: 38%; left: 28%; width: 20px; height: 25px; }
+.cargo-box.box3 { bottom: 50%; left: 20%; width: 18px; height: 15px; }
+.cargo-box.box4 { bottom: 38%; left: 42%; width: 30px; height: 35px; }
+.cargo-box.box5 { bottom: 55%; left: 45%; width: 22px; height: 18px; }
+
+/* Server equipment crate */
+.server-crate {
+  position: absolute;
+  bottom: 38%;
+  left: 55%;
+  width: 50px;
+  height: 45px;
+  background: linear-gradient(180deg, #484f58, #373e47);
+  border: 2px solid #6e7681;
+  border-radius: 3px;
+}
+
+.crate-label {
+  position: absolute;
+  top: 5px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 5px;
+  color: var(--accent-blue);
+  text-transform: uppercase;
+  background: #0d1117;
+  padding: 2px 4px;
+  border-radius: 2px;
+}
+
+.crate-fragile {
+  position: absolute;
+  bottom: 5px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 4px;
+  color: var(--accent-red);
+  text-transform: uppercase;
+}
+
+/* Workers */
+.dock-worker {
+  position: absolute;
+  width: 30px;
+  height: 65px;
+  z-index: 15;
+  transition: left 2s ease-in-out, bottom 1s ease-in-out;
+}
+
+.worker-head {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 14px;
+  height: 14px;
+  background: #c9d1d9;
+  border-radius: 50%;
+}
+
+.worker-hardhat {
+  position: absolute;
+  top: -3px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 18px;
+  height: 10px;
+  background: var(--accent-yellow);
+  border-radius: 50% 50% 0 0;
+}
+
+.worker-body {
+  position: absolute;
+  top: 15px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 18px;
+  height: 32px;
+  background: var(--accent-orange);
+  border-radius: 4px 4px 0 0;
+}
+
+.worker-legs {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 16px;
+  height: 18px;
+  background: #373e47;
+  border-radius: 0 0 3px 3px;
+}
+
+.dock-worker.worker1 { bottom: 36%; left: 35%; }
+.dock-worker.worker2 { bottom: 36%; left: 60%; }
+.dock-worker.worker3 { bottom: 36%; left: 25%; }
+
+/* Waste/Recycling area */
+.waste-area {
+  position: absolute;
+  bottom: 35%;
+  left: 5%;
+  display: flex;
+  gap: 10px;
+}
+
+.waste-bin {
+  width: 45px;
+  height: 55px;
+  background: linear-gradient(180deg, #484f58, #373e47);
+  border-radius: 4px;
+  border: 2px solid #6e7681;
+  overflow: hidden;
+  position: relative;
+}
+
+.bin-label {
+  position: absolute;
+  top: 3px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 5px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.bin-papers {
+  position: absolute;
+  top: 15px;
+  left: 3px;
+  right: 3px;
+  bottom: 3px;
+  background: repeating-linear-gradient(180deg,
+    #e6edf3 0px, #e6edf3 5px,
+    #c9d1d9 5px, #c9d1d9 7px);
+  border-radius: 2px;
+}
+
+.paper-text {
+  position: absolute;
+  font-size: 3px;
+  color: #21262d;
+  font-family: monospace;
+}
+
+.recycling-bin {
+  width: 45px;
+  height: 55px;
+  background: linear-gradient(180deg, #238636, #1a7f37);
+  border-radius: 4px;
+  border: 2px solid #3fb950;
+  position: relative;
+}
+
+.recycling-symbol {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 16px;
+}
+
+/* Safety signs */
+.safety-sign {
+  position: absolute;
+  padding: 3px 6px;
+  font-size: 6px;
+  text-transform: uppercase;
+  border-radius: 2px;
+}
+
+.safety-sign.caution {
+  background: var(--accent-yellow);
+  color: #21262d;
+  top: 18%;
+  left: 35%;
+}
+
+.safety-sign.loading {
+  background: var(--accent-blue);
+  color: #fff;
+  top: 18%;
+  right: 35%;
+}
+
+/* GENERATOR YARD - DETAILED */
+.scene-generator .scene-bg {
+  background: linear-gradient(180deg, #1a1d24 0%, #151820 30%, #1c2128 100%);
+}
+
+.generator-sky {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 30%;
+  background: linear-gradient(180deg, #1e3a5f 0%, #2d1f3d 50%, #151820 100%);
+}
+
+.generator-stars {
+  position: absolute;
+  top: 5%;
+  left: 10%;
+  width: 2px;
+  height: 2px;
+  background: #e6edf3;
+  border-radius: 50%;
+  box-shadow:
+    40px 10px 0 #e6edf3,
+    100px 5px 0 #8b949e,
+    200px 15px 0 #e6edf3,
+    280px 8px 0 #8b949e,
+    350px 12px 0 #e6edf3,
+    420px 3px 0 #8b949e,
+    500px 18px 0 #e6edf3;
+}
+
+.yard-ground {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 45%;
+  background: linear-gradient(180deg, #373e47 0%, #2d333b 40%, #21262d 100%);
+}
+
+.gravel {
+  position: absolute;
+  inset: 0;
+  background: 
+    radial-gradient(circle at 10% 20%, #48505844 2px, transparent 2px),
+    radial-gradient(circle at 25% 60%, #48505844 2px, transparent 2px),
+    radial-gradient(circle at 45% 30%, #48505844 2px, transparent 2px),
+    radial-gradient(circle at 60% 70%, #48505844 2px, transparent 2px),
+    radial-gradient(circle at 75% 40%, #48505844 2px, transparent 2px),
+    radial-gradient(circle at 90% 55%, #48505844 2px, transparent 2px);
+}
+
+/* Concrete pad */
+.concrete-pad {
+  position: absolute;
+  bottom: 20%;
+  left: 10%;
+  width: 55%;
+  height: 30%;
+  background: linear-gradient(180deg, #6e7681, #484f58);
+  border: 2px solid #8b949e;
+  border-radius: 4px;
+}
+
+.concrete-pad::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: 
+    linear-gradient(90deg, transparent 49%, #8b949e33 49%, #8b949e33 51%, transparent 51%),
+    linear-gradient(180deg, transparent 49%, #8b949e33 49%, #8b949e33 51%, transparent 51%);
+}
+
+/* Main generator unit */
+.generator-unit {
+  position: absolute;
+  bottom: 28%;
+  left: 15%;
+  width: 180px;
+  height: 110px;
+  background: linear-gradient(180deg, #484f58, #373e47);
+  border: 4px solid #6e7681;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+
+.generator-vents {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  width: 60px;
+  height: 90px;
+  background: repeating-linear-gradient(180deg,
+    #21262d 0px, #21262d 6px,
+    #373e47 6px, #373e47 10px);
+  border-radius: 4px;
+  border: 2px solid #484f58;
+}
+
+.generator-engine-cover {
+  position: absolute;
+  top: 15px;
+  left: 80px;
+  right: 15px;
+  height: 50px;
+  background: linear-gradient(180deg, #2d333b, #21262d);
+  border-radius: 4px;
+  border: 2px solid #484f58;
+}
+
+.engine-label {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 8px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.generator-panel {
+  position: absolute;
+  bottom: 10px;
+  right: 15px;
+  width: 50px;
+  height: 40px;
+  background: #21262d;
+  border: 2px solid #484f58;
+  border-radius: 4px;
+}
+
+.panel-lights {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  display: flex;
+  gap: 6px;
+}
+
+.panel-light {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.panel-light.green { background: var(--accent-green); box-shadow: 0 0 6px var(--accent-green); }
+.panel-light.yellow { background: var(--accent-yellow); box-shadow: 0 0 4px var(--accent-yellow); }
+.panel-light.red { background: var(--accent-red); }
+
+.panel-display {
+  position: absolute;
+  bottom: 6px;
+  left: 6px;
+  right: 6px;
+  height: 14px;
+  background: #0d1117;
+  border-radius: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 6px;
+  color: var(--accent-green);
+  font-family: monospace;
+}
+
+.generator-exhaust {
+  position: absolute;
+  top: -25px;
+  right: 30px;
+  width: 20px;
+  height: 30px;
+  background: linear-gradient(180deg, #373e47, #484f58);
+  border: 2px solid #6e7681;
+  border-radius: 4px 4px 0 0;
+}
+
+.exhaust-cap {
+  position: absolute;
+  top: -5px;
+  left: -3px;
+  width: 26px;
+  height: 8px;
+  background: #6e7681;
+  border-radius: 4px;
+}
+
+.generator-label {
+  position: absolute;
+  top: -35px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 9px;
+  color: var(--accent-yellow);
+  text-transform: uppercase;
+  background: rgba(210, 153, 34, 0.15);
+  padding: 4px 12px;
+  border-radius: 4px;
+  border: 1px solid rgba(210, 153, 34, 0.3);
+  white-space: nowrap;
+}
+
+/* Fuel tank */
+.fuel-tank {
+  position: absolute;
+  bottom: 28%;
+  left: 48%;
+  width: 70px;
+  height: 60px;
+  background: linear-gradient(90deg, #2d333b, #373e47, #2d333b);
+  border: 3px solid #484f58;
+  border-radius: 10px;
+}
+
+.fuel-tank-legs {
+  position: absolute;
+  bottom: -15px;
+  left: 10px;
+  right: 10px;
+  height: 15px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.fuel-leg {
+  width: 8px;
+  height: 15px;
+  background: #484f58;
+}
+
+.fuel-gauge {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 25px;
+  height: 25px;
+  background: #0d1117;
+  border: 2px solid #6e7681;
+  border-radius: 50%;
+}
+
+.fuel-gauge::after {
+  content: '¾';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 8px;
+  color: var(--accent-green);
+}
+
+.fuel-label {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 6px;
+  color: var(--accent-yellow);
+  text-transform: uppercase;
+}
+
+.fuel-warning {
+  position: absolute;
+  top: -15px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 10px;
+}
+
+/* Transfer switch - OPEN */
+.transfer-switch {
+  position: absolute;
+  bottom: 28%;
+  right: 12%;
+  width: 80px;
+  height: 120px;
+  background: linear-gradient(180deg, #484f58, #373e47);
+  border: 3px solid #6e7681;
+  border-radius: 6px;
+}
+
+.switch-door {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  right: 5px;
+  bottom: 5px;
+  background: #6e7681;
+  border-radius: 4px;
+  transform-origin: left center;
+  transform: perspective(200px) rotateY(-75deg);
+  border: 2px solid #8b949e;
+}
+
+.switch-door-handle {
+  position: absolute;
+  right: 5px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 15px;
+  background: #8b949e;
+  border-radius: 2px;
+}
+
+.switch-interior {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  right: 5px;
+  bottom: 5px;
+  background: #1c2128;
+  border-radius: 4px;
+  border: 2px solid #484f58;
+}
+
+.breaker-row {
+  position: absolute;
+  display: flex;
+  gap: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.breaker-row.row1 { top: 12px; }
+.breaker-row.row2 { top: 40px; }
+.breaker-row.row3 { top: 68px; }
+
+.breaker {
+  width: 18px;
+  height: 22px;
+  background: linear-gradient(180deg, #f85149, #a72f28);
+  border-radius: 3px;
+  border: 1px solid #6e7681;
+}
+
+.breaker.off {
+  background: linear-gradient(180deg, #484f58, #373e47);
+}
+
+.switch-label {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 5px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.switch-warning {
+  position: absolute;
+  top: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 8px;
+  color: var(--accent-red);
+  text-transform: uppercase;
+  background: rgba(248, 81, 73, 0.2);
+  padding: 4px 10px;
+  border-radius: 4px;
+  border: 1px solid var(--accent-red);
+  white-space: nowrap;
+}
+
+/* Utility pole and lines */
+.utility-pole {
+  position: absolute;
+  top: 15%;
+  right: 8%;
+  width: 12px;
+  height: 50%;
+  background: linear-gradient(90deg, #5a3d1a, #8b6914, #5a3d1a);
+  border-radius: 2px;
+}
+
+.utility-crossarm {
+  position: absolute;
+  top: 5%;
+  left: -30px;
+  width: 72px;
+  height: 8px;
+  background: linear-gradient(180deg, #5a3d1a, #8b6914);
+  border-radius: 2px;
+}
+
+.utility-insulator {
+  position: absolute;
+  top: -12px;
+  width: 8px;
+  height: 15px;
+  background: linear-gradient(180deg, #1f6feb, #1a5cc7);
+  border-radius: 3px;
+}
+
+.utility-insulator:nth-child(1) { left: 5px; }
+.utility-insulator:nth-child(2) { left: 32px; }
+.utility-insulator:nth-child(3) { right: 5px; }
+
+.utility-wire {
+  position: absolute;
+  top: 23%;
+  left: 0;
+  right: 20%;
+  height: 3px;
+  background: #21262d;
+}
+
+.utility-wire.wire2 {
+  top: 25%;
+}
+
+.utility-wire.wire3 {
+  top: 27%;
+}
+
+/* Conduit runs */
+.conduit-run {
+  position: absolute;
+  bottom: 45%;
+  left: 42%;
+  width: 25%;
+  height: 6px;
+  background: #484f58;
+  border-radius: 3px;
+}
+
+.conduit-run::before {
+  content: '';
+  position: absolute;
+  right: -6px;
+  top: -20px;
+  width: 6px;
+  height: 26px;
+  background: #484f58;
+  border-radius: 3px;
+}
+
+/* Fence section (partial - showing gap) */
+.partial-fence {
+  position: absolute;
+  bottom: 45%;
+  left: 0;
+  width: 8%;
+  height: 6px;
+  background: #484f58;
+}
+
+.partial-fence::before {
+  content: '';
+  position: absolute;
+  top: -30px;
+  left: 5%;
+  width: 6px;
+  height: 36px;
+  background: linear-gradient(90deg, #373e47, #484f58, #373e47);
+}
+
+.fence-end-post {
+  position: absolute;
+  bottom: 45%;
+  left: 8%;
+  width: 8px;
+  height: 50px;
+  background: linear-gradient(90deg, #373e47, #484f58, #373e47);
+  transform: translateY(50%);
+}
+
+.no-fence-sign {
+  position: absolute;
+  bottom: 52%;
+  left: 10%;
+  font-size: 7px;
+  color: var(--accent-red);
+  text-transform: uppercase;
+  background: rgba(248, 81, 73, 0.2);
+  padding: 3px 8px;
+  border-radius: 3px;
+  border: 1px solid var(--accent-red);
+  white-space: nowrap;
+}
+
+/* Warning signs */
+.danger-sign {
+  position: absolute;
+  bottom: 55%;
+  left: 18%;
+  width: 40px;
+  height: 50px;
+  background: var(--accent-yellow);
+  border: 2px solid #21262d;
+  border-radius: 2px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.danger-sign-icon {
+  font-size: 16px;
+}
+
+.danger-sign-text {
+  font-size: 5px;
+  color: #21262d;
+  font-weight: bold;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+.danger-sign-post {
+  position: absolute;
+  bottom: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 20px;
+  background: #484f58;
+}
+
+/* HVAC unit */
+.hvac-unit {
+  position: absolute;
+  bottom: 28%;
+  right: 28%;
+  width: 50px;
+  height: 50px;
+  background: linear-gradient(180deg, #484f58, #373e47);
+  border: 2px solid #6e7681;
+  border-radius: 4px;
+}
+
+.hvac-fan {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  right: 5px;
+  bottom: 15px;
+  background: #21262d;
+  border-radius: 50%;
+  border: 2px solid #484f58;
+}
+
+.hvac-fan::after {
+  content: '✕';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 14px;
+  color: #6e7681;
+}
+
+.hvac-label {
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 5px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+}
+
+/* Security camera (non-functional) */
+.yard-camera {
+  position: absolute;
+  top: 35%;
+  left: 5%;
+  width: 25px;
+  height: 20px;
+  background: #373e47;
+  border: 2px solid #484f58;
+  border-radius: 4px;
+  transform: rotate(15deg);
+}
+
+.yard-camera-lens {
+  position: absolute;
+  right: -8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 12px;
+  height: 12px;
+  background: #21262d;
+  border: 2px solid #484f58;
+  border-radius: 50%;
+}
+
+.yard-camera-mount {
+  position: absolute;
+  left: -5px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 8px;
+  height: 4px;
+  background: #484f58;
+}
+
+.camera-offline {
+  position: absolute;
+  top: -18px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 6px;
+  color: var(--accent-red);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* Access path (no gate) */
+.access-path {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 15%;
+  height: 45%;
+  background: linear-gradient(90deg, #2d333b, #373e47);
+  border-left: 3px dashed var(--accent-yellow);
+}
+
+.path-label {
+  position: absolute;
+  top: 10%;
+  left: 50%;
+  transform: translateX(-50%) rotate(-90deg);
+  font-size: 7px;
+  color: var(--accent-yellow);
+  text-transform: uppercase;
+  white-space: nowrap;
+  letter-spacing: 1px;
+}
+
+.nav-controls {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  padding: 12px;
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border-color);
+}
+
+.nav-btn {
+  padding: 10px 24px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.right-panel {
+  background: var(--bg-secondary);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.panel-header {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.panel-title {
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.panel-badge {
+  background: var(--accent-blue);
+  color: #fff;
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 10px;
+}
+
+.log-filters {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.filter-btn {
+  padding: 4px 8px;
+  font-size: 10px;
+  border-radius: 4px;
+  background: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.filter-btn.active {
+  background: var(--accent-blue);
+  border-color: var(--accent-blue);
+  color: #fff;
+}
+
+.log-container {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+}
+
+.log-drop-zone {
+  min-height: 100px;
+  border: 3px dashed var(--border-color);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  font-size: 12px;
+  margin-bottom: 12px;
+  transition: all 0.2s;
+  padding: 20px;
+  text-align: center;
+  gap: 8px;
+}
+
+.log-drop-zone-icon {
+  font-size: 28px;
+  opacity: 0.5;
+}
+
+.log-drop-zone.drag-over {
+  border-color: var(--accent-green);
+  border-style: solid;
+  background: rgba(63, 185, 80, 0.15);
+  color: var(--accent-green);
+  transform: scale(1.02);
+}
+
+.log-drop-zone.drag-over .log-drop-zone-icon {
+  opacity: 1;
+  transform: scale(1.2);
+}
+
+.logged-items {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.logged-item {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 14px;
+  font-size: 12px;
+}
+
+.logged-item-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.logged-item-zone {
+  font-size: 10px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  background: var(--bg-primary);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.logged-item-text {
+  color: var(--text-primary);
+  margin-bottom: 12px;
+  line-height: 1.4;
+}
+
+.attack-surface-input {
+  width: 100%;
+  padding: 10px;
+  font-size: 12px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  color: var(--text-primary);
+  resize: none;
+  font-family: inherit;
+  margin-bottom: 10px;
+}
+
+.attack-surface-input:focus {
+  outline: none;
+  border-color: var(--accent-blue);
+}
+
+.attack-surface-input::placeholder {
+  color: var(--text-secondary);
+}
+
+.logged-item-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.save-btn {
+  padding: 6px 14px;
+  font-size: 11px;
+}
+
+.saved-indicator {
+  color: var(--accent-green);
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Zone narrative panel */
+.zone-narrative-panel {
+  border-top: 1px solid var(--border-color);
+  max-height: 180px;
+  overflow: hidden;
+}
+
+.narrative-header {
+  padding: 8px 12px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+}
+
+.narrative-content {
+  padding: 12px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-primary);
+  max-height: 130px;
+  overflow-y: auto;
+}
+
+.narrative-title {
+  font-weight: 600;
+  color: var(--accent-blue);
+  margin-bottom: 6px;
+}
+
+.narrative-text {
+  color: var(--text-secondary);
+}
+
+.footer {
+  grid-column: 1 / -1;
+  background: var(--bg-secondary);
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--text-secondary);
+  border-top: 1px solid var(--border-color);
+}
+
+.status-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.status-dot-footer {
+  width: 8px;
+  height: 8px;
+  background: var(--accent-green);
+  border-radius: 50%;
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-overlay.hidden {
+  display: none;
+}
+
+.modal {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 32px;
+  max-width: 560px;
+  width: 90%;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--accent-blue);
+}
+
+.modal-subtitle {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+.modal-context {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.modal-context-title {
+  font-size: 11px;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+  font-weight: 600;
+}
+
+.client-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.client-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  padding: 8px 10px;
+  background: var(--bg-tertiary);
+  border-radius: 6px;
+}
+
+.client-badge-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+}
+
+.client-badge.healthcare .client-badge-icon { background: rgba(248, 81, 73, 0.2); color: #f85149; }
+.client-badge.financial .client-badge-icon { background: rgba(63, 185, 80, 0.2); color: #3fb950; }
+.client-badge.government .client-badge-icon { background: rgba(88, 166, 255, 0.2); color: #58a6ff; }
+.client-badge.retail .client-badge-icon { background: rgba(210, 153, 34, 0.2); color: #d29922; }
+
+.impact-warning {
+  background: rgba(248, 81, 73, 0.1);
+  border: 1px solid rgba(248, 81, 73, 0.3);
+  border-radius: 6px;
+  padding: 10px 12px;
+  font-size: 11px;
+  color: var(--accent-red);
+  line-height: 1.4;
+}
+
+.impact-warning strong {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.modal-goals {
+  background: var(--bg-tertiary);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 24px;
+}
+
+.modal-goal {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 10px;
+  font-size: 13px;
+}
+
+.modal-goal:last-child {
+  margin-bottom: 0;
+}
+
+.goal-number {
+  background: var(--accent-blue);
+  color: #fff;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.modal-btn {
+  width: 100%;
+  padding: 12px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.vuln-list {
+  margin-bottom: 20px;
+}
+
+.vuln-item {
+  background: var(--bg-tertiary);
+  border-radius: 8px;
+  padding: 14px;
+  margin-bottom: 12px;
+}
+
+.vuln-item:last-child {
+  margin-bottom: 0;
+}
+
+.vuln-name {
+  font-weight: 600;
+  color: var(--accent-blue);
+  margin-bottom: 6px;
+  font-size: 14px;
+}
+
+.vuln-desc {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.assessment-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.assessment-overlay.hidden {
+  display: none;
+}
+
+.assessment-panel {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 32px;
+  max-width: 600px;
+  width: 90%;
+}
+
+.assessment-header {
+  margin-bottom: 24px;
+}
+
+.assessment-title {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+
+.assessment-progress {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.question-stem {
+  font-size: 15px;
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+
+.answer-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.answer-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: var(--bg-tertiary);
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-size: 14px;
+}
+
+.answer-option:hover {
+  border-color: var(--accent-blue);
+  background: rgba(88, 166, 255, 0.1);
+}
+
+.answer-option.selected {
+  border-color: var(--accent-blue);
+  background: rgba(88, 166, 255, 0.15);
+}
+
+.answer-option .option-letter {
+  width: 24px;
+  height: 24px;
+  background: var(--border-color);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.answer-option.selected .option-letter {
+  background: var(--accent-blue);
+  color: #fff;
+}
+
+.assessment-feedback {
+  padding: 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  margin-bottom: 16px;
+  display: none;
+}
+
+.assessment-feedback.wrong {
+  display: block;
+  background: rgba(248, 81, 73, 0.15);
+  border: 1px solid var(--accent-red);
+  color: var(--accent-red);
+}
+
+.assessment-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.submit-answer-btn {
+  padding: 10px 24px;
+}
+
+.toast {
+  position: fixed;
+  bottom: 60px;
+  left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--accent-green);
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 13px;
+  z-index: 2000;
+  opacity: 0;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.toast.show {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+}
+
+.toast-icon {
+  color: var(--accent-green);
+}
+
+.export-preview {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.export-preview.hidden {
+  display: none;
+}
+
+.export-content {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 24px;
+  max-width: 700px;
+  width: 90%;
+  max-height: 80vh;
+  overflow: auto;
+}
+
+.export-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.export-csv {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 16px;
+  font-family: monospace;
+  font-size: 11px;
+  white-space: pre-wrap;
+  word-break: break-all;
+  margin-bottom: 16px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.export-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.popup-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 24px;
+  z-index: 500;
+  width: 50vw;
+  max-width: 700px;
+  min-width: min(400px, 90vw);
+  max-height: 70vh;
+  overflow-y: auto;
+  display: none;
+}
+
+.popup-modal.show {
+  display: block;
+}
+
+@media (max-width: 1100px) {
+  .popup-modal { width: 92vw; }
+  .document-popup { width: 92vw; height: 70vh; }
+}
+
+.popup-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.visitor-log-table {
+  width: 100%;
+  font-size: 12px;
+  border-collapse: collapse;
+}
+
+.visitor-log-table th,
+.visitor-log-table td {
+  padding: 8px 10px;
+  text-align: left;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.visitor-log-table th {
+  color: var(--text-secondary);
+  font-weight: 500;
+  font-size: 11px;
+  text-transform: uppercase;
+}
+
+.visitor-log-table tbody tr:hover {
+  background: var(--bg-tertiary);
+}
+
+.close-popup-btn {
+  margin-top: 16px;
+  width: 100%;
+}
+
+/* Document popup - 50% of screen */
+.document-popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 50vw;
+  height: 50vh;
+  background: #f5f5f0;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  z-index: 600;
+  display: none;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.document-popup.show {
+  display: flex;
+}
+
+.document-header {
+  background: #e8e8e0;
+  padding: 12px 16px;
+  border-bottom: 1px solid #ccc;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.document-header-title {
+  font-size: 12px;
+  color: #666;
+  font-weight: 500;
+}
+
+.document-close-btn {
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  color: #666;
+  padding: 0 8px;
+}
+
+.document-close-btn:hover {
+  color: #333;
+}
+
+.document-content {
+  flex: 1;
+  padding: 24px 32px;
+  overflow-y: auto;
+  color: #1a1a1a;
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.document-letterhead {
+  text-align: center;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid #1a1a1a;
+}
+
+.document-letterhead-logo {
+  font-size: 18px;
+  font-weight: bold;
+  color: #1f6feb;
+  letter-spacing: 2px;
+  margin-bottom: 4px;
+}
+
+.document-letterhead-sub {
+  font-size: 10px;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.document-stamp {
+  position: absolute;
+  top: 80px;
+  right: 40px;
+  transform: rotate(-15deg);
+  border: 3px solid var(--accent-red);
+  color: var(--accent-red);
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: bold;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+.document-field {
+  margin-bottom: 12px;
+}
+
+.document-label {
+  font-weight: bold;
+  color: #333;
+}
+
+.document-value {
+  color: #1a1a1a;
+}
+
+.document-highlight {
+  background: rgba(248, 81, 73, 0.2);
+  padding: 2px 4px;
+}
+
+.document-section {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid #ddd;
+}
+
+.document-section-title {
+  font-weight: bold;
+  margin-bottom: 8px;
+  color: #333;
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 1px;
+}
+
+.finish-tour-container {
+  padding: 12px;
+  border-top: 1px solid var(--border-color);
+  display: none;
+}
+
+.finish-tour-container.visible {
+  display: block;
+}
+
+.finish-tour-btn {
+  width: 100%;
+  padding: 12px;
+  background: var(--accent-green);
+  border-color: var(--accent-green);
+}
+
+.finish-tour-btn:hover {
+  background: #2ea043;
+}
+
+.scene-transition {
+  position: fixed;
+  inset: 0;
+  background: var(--bg-primary);
+  z-index: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+
+.scene-transition.active {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.transition-text {
+  font-size: 12px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.final-modal .modal {
+  text-align: center;
+}
+
+.final-modal .modal-title {
+  font-size: 24px;
+  margin-bottom: 16px;
+}
+
+.final-modal .modal-subtitle {
+  font-size: 14px;
+  margin-bottom: 28px;
+}
+
+.return-btn {
+  display: inline-block;
+  padding: 14px 32px;
+  background: var(--accent-blue);
+  color: #fff;
+  text-decoration: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  font-family: inherit;
+}
+
+.return-btn:hover {
+  background: #4393e6;
+}
+
+.drag-ghost {
+  position: fixed;
+  pointer-events: none;
+  z-index: 9999;
+  background: var(--bg-secondary);
+  border: 2px solid var(--accent-yellow);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 11px;
+  max-width: 200px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+  opacity: 0.95;
+}
+
+/* ============================================================
+   RESPONSIVE LAYOUT
+   ============================================================ */
+
+/* Drawer toggle buttons + scrim are hidden on wide desktop layouts */
+.drawer-toggle { display: none; }
+.icon-btn { padding: 6px 10px; }
+.btn-short { display: none; }
+.log-badge-mini {
+  background: var(--accent-blue);
+  color: #fff;
+  font-size: 9px;
+  padding: 1px 5px;
+  border-radius: 10px;
+  margin-left: 2px;
+}
+.panel-scrim {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 40;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+/* -------- Tablets / small Chromebooks: panels become slide-over drawers -------- */
+@media (max-width: 1100px) {
+  .app-container {
+    grid-template-columns: 1fr;
+    grid-template-rows: 48px 1fr 28px;
+  }
+
+  .header { grid-column: 1; }
+  .footer { grid-column: 1; }
+  .main-view { grid-column: 1; grid-row: 2; }
+
+  .drawer-toggle { display: inline-flex; align-items: center; gap: 4px; }
+
+  /* ---- LEFT (Facility Map): overlay drawer with scrim ----
+     The map is navigation only, so it's fine for it to float over the scene. */
+  .sidebar {
+    position: fixed;
+    top: 48px;
+    bottom: 28px;
+    left: 0;
+    width: 280px;
+    max-width: 85vw;
+    z-index: 50;
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    box-shadow: 0 0 30px rgba(0,0,0,0.5);
+    border-right: 1px solid var(--border-color);
+  }
+  .app-container.left-open .sidebar { transform: translateX(0); }
+
+  /* Scrim only ever covers the scene for the LEFT drawer, never the log. */
+  .app-container.left-open .panel-scrim {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* ---- RIGHT (Tour Log): docks BESIDE the scene, no scrim ----
+     The log is a drop target, so it must sit next to the scene and leave every
+     hotspot visible and interactive. We reserve real column space for it and
+     let the scene rescale into what's left (the ResizeObserver handles fit). */
+  .right-panel {
+    position: fixed;
+    top: 48px;
+    bottom: 28px;
+    right: 0;
+    width: 300px;
+    max-width: 42vw;
+    z-index: 45;
+    transform: translateX(100%);
+    transition: transform 0.25s ease;
+    box-shadow: -8px 0 24px rgba(0,0,0,0.45);
+    border-left: 1px solid var(--border-color);
+  }
+  .app-container.right-open .right-panel { transform: translateX(0); }
+
+  /* Push the scene out of the way so the log never covers a hotspot. */
+  .app-container.right-open .main-view {
+    margin-right: min(300px, 42vw);
+    transition: margin-right 0.25s ease;
+  }
+
+  /* Give the scene the full width when panels are tucked away */
+  .logo-sub { display: none; }
+}
+
+/* -------- Phones / very small screens -------- */
+@media (max-width: 560px) {
+  .btn-full { display: none; }
+  .btn-short { display: inline; }
+  .header { padding: 0 10px; }
+  .header-actions { gap: 6px; }
+  .logo { gap: 8px; }
+  .logo-name { font-size: 14px; }
+  .sidebar { width: 86vw; max-width: 340px; }
+
+  .nav-btn { padding: 12px 16px; font-size: 13px; }
+  .nav-controls { padding: 10px 8px; gap: 8px; }
+
+  /* On phones a side-by-side split leaves too little room for the scene, so the
+     log docks to the BOTTOM as a sheet. Scene sits above it, fully visible and
+     interactive — still no scrim over the hotspots. */
+  .right-panel {
+    top: auto;
+    left: 0;
+    right: 0;
+    width: 100%;
+    max-width: 100%;
+    height: 48vh;
+    transform: translateY(100%);
+    border-left: none;
+    border-top: 1px solid var(--border-color);
+    box-shadow: 0 -8px 24px rgba(0,0,0,0.45);
+  }
+  .app-container.right-open .right-panel { transform: translateY(0); }
+  .app-container.right-open .main-view {
+    margin-right: 0;
+    margin-bottom: 48vh;
+    transition: margin-bottom 0.25s ease;
+  }
+
+  /* Larger touch targets for the log filter chips */
+  .filter-btn { padding: 8px 10px; font-size: 11px; }
+}
+
+/* Short landscape (e.g. Chromebook in split view): keep controls reachable */
+@media (max-height: 520px) {
+  .zone-narrative-panel { max-height: 120px; }
+  .narrative-content { max-height: 80px; }
+}
+
+/* ---- Log coach-mark arrow ---- */
+.log-arrow-hint {
+  position: fixed;
+  top: 52px;
+  right: 12px;
+  z-index: 60;
+  display: none;              /* hidden unless the app asks for it (compact only) */
+  flex-direction: column;
+  align-items: flex-end;
+  pointer-events: none;
+  animation: arrow-bounce 1.1s ease-in-out infinite;
+}
+.log-arrow-icon {
+  font-size: 26px;
+  line-height: 1;
+  color: var(--accent-blue);
+  text-align: right;
+  margin-right: 24px;
+  filter: drop-shadow(0 0 6px rgba(88, 166, 255, 0.7));
+}
+.log-arrow-text {
+  margin-top: 4px;
+  background: var(--accent-blue);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 5px 9px;
+  border-radius: 6px;
+  max-width: 190px;
+  text-align: center;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.4);
+}
+@keyframes arrow-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-7px); }
+}
+/* Only reveal the hint in compact/drawer mode, and only when flagged by JS. */
+@media (max-width: 1100px) {
+  .app-container.show-log-hint .log-arrow-hint { display: flex; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .log-arrow-hint { animation: none; }
+}
+
+/* Text label next to the drawer-toggle icons so it's obvious they open panels */
+.toggle-label { font-size: 12px; }
+@media (max-width: 480px) {
+  .toggle-label { display: none; }
+}
+
+/* Touch devices: the object glow is always visible (no hover dependency), so
+   nothing extra is needed on the hotspot itself. Keep the label affordance. */
+@media (hover: none) {
+  .hotspot-label { opacity: 0.85; }
+}
+</style>
+</head>
+<body>
+
+<div class="app-container" id="app">
+  <header class="header">
+    <div class="logo">
+      <button class="btn icon-btn drawer-toggle" id="toggleLeftBtn" aria-label="Toggle facility map">☰ <span class="toggle-label">Map</span></button>
+      <div class="logo-icon">H</div>
+      <span class="logo-name">Halcyon Cloud</span>
+      <span class="logo-sub" style="color: var(--text-secondary); font-weight: 400;">/ DFW-3 Security Console</span>
+    </div>
+    <div class="header-actions">
+      <button class="btn" id="replayZoneBtn"><span class="btn-full">↻ Replay Animation</span><span class="btn-short">↻</span></button>
+      <button class="btn" id="exportLogBtn"><span class="btn-full">↓ Export Log (.csv)</span><span class="btn-short">↓</span></button>
+      <button class="btn icon-btn drawer-toggle" id="toggleRightBtn" aria-label="Toggle tour log"><span class="toggle-label">Log</span> 📋 <span class="log-badge-mini" id="logCountMini">0</span></button>
+    </div>
+  </header>
+
+  <!-- Coach-mark: appears after the first vignette to point students at the Log
+       button. Only shown in compact/drawer mode; hidden once the Log is opened. -->
+  <div class="log-arrow-hint" id="logArrowHint" aria-hidden="true">
+    <div class="log-arrow-icon">⬆</div>
+    <div class="log-arrow-text">Open the Log to record what you find</div>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-title">Facility Map</div>
+    <nav class="zone-map" id="zoneMap">
+      <div class="zone-node current" data-zone="0">
+        <div class="zone-indicator"></div>
+        <span class="zone-name">Perimeter Gate</span>
+        <div class="zone-connector"></div>
+      </div>
+      <div class="zone-node locked" data-zone="1">
+        <div class="zone-indicator"></div>
+        <span class="zone-name">Lobby</span>
+        <div class="zone-connector"></div>
+      </div>
+      <div class="zone-node locked" data-zone="2">
+        <div class="zone-indicator"></div>
+        <span class="zone-name">Mantrap</span>
+        <div class="zone-connector"></div>
+      </div>
+      <div class="zone-node locked" data-zone="3">
+        <div class="zone-indicator"></div>
+        <span class="zone-name">Server Hall</span>
+        <div class="zone-connector"></div>
+      </div>
+      <div class="zone-node locked" data-zone="4">
+        <div class="zone-indicator"></div>
+        <span class="zone-name">Loading Dock</span>
+        <div class="zone-connector"></div>
+      </div>
+      <div class="zone-node locked" data-zone="5">
+        <div class="zone-indicator"></div>
+        <span class="zone-name">Generator Yard</span>
+      </div>
+    </nav>
+    
+    <div class="client-info">
+      <div class="client-info-title">Client Data Hosted</div>
+      <div class="client-list">
+        <div class="client-item healthcare">
+          <div class="client-icon">🏥</div>
+          <span>Regional Health Networks</span>
+        </div>
+        <div class="client-item financial">
+          <div class="client-icon">🏦</div>
+          <span>Credit Union Systems</span>
+        </div>
+        <div class="client-item government">
+          <div class="client-icon">🏛</div>
+          <span>State Agency Backups</span>
+        </div>
+        <div class="client-item retail">
+          <div class="client-icon">🛒</div>
+          <span>E-commerce Platforms</span>
+        </div>
+      </div>
+      <div class="data-at-risk">
+        <div class="data-at-risk-title">⚠ Data at Risk</div>
+        PHI, PCI-DSS cardholder data, PII, government records
+      </div>
+    </div>
+  </aside>
+
+  <main class="main-view">
+    <div class="scene-container" id="sceneContainer">
+      <div class="hud-frame">
+        <div class="hud-corner tl"></div>
+        <div class="hud-corner tr"></div>
+        <div class="hud-corner bl"></div>
+        <div class="hud-corner br"></div>
+        <div class="hud-reticle"></div>
+      </div>
+
+      <!-- Scene 0: Perimeter Gate -->
+      <div class="scene scene-perimeter active" data-zone="0">
+        <div class="scene-view">
+          <div class="scene-bg">
+            <div class="perimeter-sky"></div>
+            <div class="datacenter-building">
+              <div class="building-sign">DFW-3</div>
+              <div class="building-windows">
+                <div class="building-window lit"></div>
+                <div class="building-window"></div>
+                <div class="building-window lit"></div>
+                <div class="building-window"></div>
+                <div class="building-window lit"></div>
+                <div class="building-window"></div>
+                <div class="building-window"></div>
+                <div class="building-window lit"></div>
+                <div class="building-window"></div>
+                <div class="building-window lit"></div>
+                <div class="building-window"></div>
+                <div class="building-window"></div>
+                <div class="building-window lit"></div>
+                <div class="building-window"></div>
+                <div class="building-window lit"></div>
+                <div class="building-window"></div>
+                <div class="building-window"></div>
+                <div class="building-window lit"></div>
+              </div>
+            </div>
+            <div class="secured-zone"></div>
+            <div class="secured-zone-label">✓ Secured Area</div>
+            <div class="perimeter-fence">
+              <div class="fence-wire"></div>
+              <div class="fence-wire wire2"></div>
+              <div class="fence-post"></div>
+              <div class="fence-post"></div>
+              <div class="fence-post"></div>
+              <div class="fence-post"></div>
+            </div>
+            <div class="public-zone"></div>
+            <div class="public-zone-label">⚠ Public Zone</div>
+            <div class="road-vertical">
+              <div class="road-center-line"></div>
+            </div>
+            <div class="gate-housing">
+              <div class="gate-post-left"></div>
+              <div class="gate-post-right"></div>
+              <div class="gate-arm" id="gateArm"></div>
+              <div class="gate-booth">
+                <div class="booth-window"></div>
+              </div>
+            </div>
+            <div class="badge-reader-station">
+              <div class="reader-post">
+                <div class="reader-device">
+                  <div class="reader-screen">SCAN</div>
+                  <div class="reader-light"></div>
+                </div>
+              </div>
+              <div class="no-barrier-indicator">No fence · No barrier<br>Walk-up access</div>
+            </div>
+            <div class="vehicle auth-vehicle" id="authVehicle">
+              <div class="vehicle-top"></div>
+              <div class="vehicle-body">
+                <div class="vehicle-windshield"></div>
+                <div class="vehicle-lights">
+                  <div class="vehicle-light"></div>
+                  <div class="vehicle-light"></div>
+                </div>
+              </div>
+            </div>
+            <div class="vehicle tailgate-vehicle" id="tailgateVehicle">
+              <div class="vehicle-top"></div>
+              <div class="vehicle-body">
+                <div class="vehicle-windshield"></div>
+                <div class="vehicle-lights">
+                  <div class="vehicle-light"></div>
+                  <div class="vehicle-light"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- FIXED: Gate arm hotspot - centered on gate -->
+          <div class="hotspot" data-obs="gatearm" style="top: 42%; left: 40%; width: 180px; height: 70px;">
+            <div class="hotspot-glow"></div>
+            <div class="hotspot-label">Gate Arm — Drag to log</div>
+          </div>
+          <!-- FIXED: Badge reader hotspot - positioned on reader station -->
+          <div class="hotspot" data-obs="badgereader" style="top: 60%; left: 35%; width: 60px; height: 130px;">
+            <div class="hotspot-glow"></div>
+            <div class="hotspot-label">External Badge Reader — Drag to log</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scene 1: Lobby -->
+      <div class="scene scene-lobby" data-zone="1">
+        <div class="scene-view">
+          <div class="scene-bg">
+            <div class="lobby-walls">
+              <div class="halcyon-logo-wall">HALCYON</div>
+              <div class="lobby-windows">
+                <div class="lobby-window"></div>
+                <div class="lobby-window"></div>
+              </div>
+              <div class="lobby-window-right">
+                <div class="lobby-window"></div>
+              </div>
+            </div>
+            <div class="lobby-floor"><div class="floor-tiles"></div></div>
+            <div class="reception-desk">
+              <div class="desk-top"></div>
+              <div class="desk-monitor"></div>
+              <div class="visitor-log-book"></div>
+            </div>
+            <div class="entry-door" id="entryDoor"><div class="door-window"></div><div class="door-handle"></div></div>
+            <div class="person employee" id="lobbyEmployee" style="bottom: 35%; left: 5%;">
+              <div class="person-head"></div><div class="person-body"></div><div class="badge"></div><div class="person-legs"></div>
+            </div>
+            <div class="person contractor" id="lobbyContractor" style="bottom: 35%; left: -5%; opacity: 0;">
+              <div class="person-head"></div><div class="person-body"></div><div class="person-legs"></div>
+              <div class="equipment-case" style="position: absolute; bottom: 5px; right: -30px;"></div>
+            </div>
+            <div class="person visitor" id="lobbyVisitor" style="bottom: -10%; left: 50%; opacity: 0;">
+              <div class="person-head"></div><div class="person-body"></div><div class="person-legs"></div>
+            </div>
+          </div>
+          
+          <!-- FIXED: Entry door hotspot - covers the door -->
+          <div class="hotspot" data-obs="piggybacking" style="bottom: 32%; right: 13%; width: 75px; height: 115px;">
+            <div class="hotspot-glow"></div>
+            <div class="hotspot-label">Entry Door — Drag to log</div>
+          </div>
+          <!-- FIXED: Visitor log hotspot - on the desk where the log book is -->
+          <div class="hotspot" data-obs="visitorlog" data-popup="visitorlog" style="bottom: 28%; left: 52%; width: 50px; height: 35px;">
+            <div class="hotspot-glow"></div>
+            <div class="hotspot-label">Visitor Log — Drag to log</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scene 2: Mantrap -->
+      <div class="scene scene-mantrap" data-zone="2">
+        <div class="scene-view">
+          <div class="scene-bg">
+            <div class="mantrap-room">
+              <div class="mantrap-ceiling">
+                <div class="ceiling-light light1"></div>
+                <div class="ceiling-light light2"></div>
+                <div class="ceiling-light light3"></div>
+                <div class="ceiling-camera">
+                  <div class="camera-lens"></div>
+                </div>
+              </div>
+              
+              <div class="mantrap-lobby-area">
+                <div class="lobby-label">← Lobby</div>
+                <div class="waiting-person">
+                  <div class="person security" style="position: relative;">
+                    <div class="person-head"></div>
+                    <div class="person-body"></div>
+                    <div class="badge"></div>
+                    <div class="person-legs"></div>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="mantrap-server-area">
+                <div class="server-label">Server Hall →</div>
+                <div class="mini-rack rack1">
+                  <div class="mini-rack-led"></div>
+                  <div class="mini-rack-led"></div>
+                  <div class="mini-rack-led"></div>
+                  <div class="mini-rack-led"></div>
+                </div>
+                <div class="mini-rack rack2">
+                  <div class="mini-rack-led"></div>
+                  <div class="mini-rack-led"></div>
+                  <div class="mini-rack-led"></div>
+                  <div class="mini-rack-led"></div>
+                </div>
+              </div>
+              
+              <div class="mantrap-vestibule">
+                <div class="vestibule-floor">
+                  <div class="floor-marking"></div>
+                  <div class="weight-sensor">
+                    <span class="weight-sensor-label">Weight Sensor</span>
+                  </div>
+                </div>
+                
+                <div class="airlock-sign">
+                  <div class="airlock-sign-title">⚠ AIRLOCK COMPROMISED</div>
+                  <div class="airlock-sign-subtitle">Both doors propped open</div>
+                </div>
+                
+                <div class="status-panel">
+                  <div class="status-panel-title">⚠ CRITICAL ALERT</div>
+                  <div class="status-row">
+                    <span class="status-label">Outer Door</span>
+                    <span class="status-value"><span class="status-dot red"></span><span class="status-text alert">OPEN</span></span>
+                  </div>
+                  <div class="status-row">
+                    <span class="status-label">Inner Door</span>
+                    <span class="status-value"><span class="status-dot red"></span><span class="status-text alert">OPEN</span></span>
+                  </div>
+                  <div class="status-row">
+                    <span class="status-label">Interlock</span>
+                    <span class="status-value"><span class="status-dot red"></span><span class="status-text alert">BYPASS</span></span>
+                  </div>
+                </div>
+                
+                <div class="mantrap-outer-door">
+                  <div class="outer-door-window"></div>
+                  <div class="outer-door-handle"></div>
+                  <div class="outer-door-status">⚠ HELD</div>
+                </div>
+                <div class="outer-reader">
+                  <div class="reader-mini-screen">ALERT</div>
+                  <div class="reader-mini-light"></div>
+                </div>
+                
+                <div class="mantrap-inner-door">
+                  <div class="inner-door-window"></div>
+                  <div class="inner-door-handle"></div>
+                  <div class="inner-door-status">⚠ HELD</div>
+                </div>
+                <div class="inner-reader">
+                  <div class="reader-mini-screen">ALERT</div>
+                  <div class="reader-mini-light"></div>
+                </div>
+                
+                <div class="door-wedge-outer">
+                  <div class="wedge-label">Wedge</div>
+                  <div class="wedge-shape"></div>
+                </div>
+                
+                <div class="door-wedge-inner">
+                  <div class="wedge-label">Wedge</div>
+                  <div class="wedge-shape"></div>
+                </div>
+                
+                <div class="mantrap-person">
+                  <div class="person employee" style="position: relative;">
+                    <div class="person-head"></div>
+                    <div class="person-body"></div>
+                    <div class="badge"></div>
+                    <div class="person-legs"></div>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="alert-banner">
+                <span class="alert-icon">🚨</span>
+                <span class="alert-text">Both Doors Open — Airlock Defeated — Walk-Through Access</span>
+              </div>
+            </div>
+          </div>
+          
+          <!-- FIXED: Wedge hotspot - covers both wedges at bottom of vestibule -->
+          <div class="hotspot" data-obs="wedge" style="bottom: 28%; left: 28%; width: 44%; height: 60px;">
+            <div class="hotspot-glow"></div>
+            <div class="hotspot-label">Door Wedges — Drag to log</div>
+          </div>
+          <!-- FIXED: Sensor/interlock hotspot - covers status panel -->
+          <div class="hotspot" data-obs="sensor" style="top: 22%; left: 38%; width: 24%; height: 100px;">
+            <div class="hotspot-glow"></div>
+            <div class="hotspot-label">Bypassed Interlock — Drag to log</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scene 3: Server Hall - SHOULDER SURFING VIEW -->
+      <div class="scene scene-serverhall" data-zone="3">
+        <div class="scene-view">
+          <div class="scene-bg">
+            <div class="server-hall-bg">
+              <!-- Background server racks with open cages -->
+              <div class="bg-server-racks">
+                <div class="bg-rack has-cage">
+                  <div class="rack-label">HEALTH-DB</div>
+                  <div class="cage-door"><div class="cage-mesh"></div></div>
+                  <div class="bg-rack-leds">
+                    <div class="bg-rack-led"></div>
+                    <div class="bg-rack-led"></div>
+                    <div class="bg-rack-led amber"></div>
+                    <div class="bg-rack-led"></div>
+                  </div>
+                </div>
+                <div class="bg-rack">
+                  <div class="rack-label">FIN-PROC</div>
+                  <div class="bg-rack-leds">
+                    <div class="bg-rack-led"></div>
+                    <div class="bg-rack-led"></div>
+                    <div class="bg-rack-led"></div>
+                    <div class="bg-rack-led"></div>
+                  </div>
+                </div>
+                <div class="bg-rack has-cage">
+                  <div class="rack-label">GOV-BACKUP</div>
+                  <div class="cage-door"><div class="cage-mesh"></div></div>
+                  <div class="bg-rack-leds">
+                    <div class="bg-rack-led"></div>
+                    <div class="bg-rack-led amber"></div>
+                    <div class="bg-rack-led"></div>
+                    <div class="bg-rack-led"></div>
+                  </div>
+                </div>
+                <div class="bg-rack">
+                  <div class="rack-label">RETAIL-TX</div>
+                  <div class="bg-rack-leds">
+                    <div class="bg-rack-led"></div>
+                    <div class="bg-rack-led"></div>
+                    <div class="bg-rack-led"></div>
+                    <div class="bg-rack-led red"></div>
+                  </div>
+                </div>
+                <div class="bg-rack has-cage">
+                  <div class="rack-label">CUST-DATA</div>
+                  <div class="cage-door"><div class="cage-mesh"></div></div>
+                  <div class="bg-rack-leds">
+                    <div class="bg-rack-led"></div>
+                    <div class="bg-rack-led"></div>
+                    <div class="bg-rack-led"></div>
+                    <div class="bg-rack-led"></div>
+                  </div>
+                </div>
+                <div class="bg-rack">
+                  <div class="rack-label">NET-CORE</div>
+                  <div class="bg-rack-leds">
+                    <div class="bg-rack-led"></div>
+                    <div class="bg-rack-led amber"></div>
+                    <div class="bg-rack-led"></div>
+                    <div class="bg-rack-led"></div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Password warning -->
+              <div class="password-warning">
+                <div class="password-warning-icon">👁</div>
+                <div class="password-warning-text">Password Visible to Bystander</div>
+              </div>
+              
+              <!-- Shoulder surfing scene -->
+              <div class="shoulder-surf-scene">
+                <!-- KVM Terminal -->
+                <div class="kvm-terminal">
+                  <div class="kvm-monitor-large">
+                    <div class="kvm-screen-large">
+                      <div class="terminal-line dimmed">Halcyon Cloud DFW-3 KVM Console</div>
+                      <div class="terminal-line dimmed">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</div>
+                      <div class="terminal-line"></div>
+                      <div class="terminal-line prompt">login: jsmith</div>
+                      <div class="terminal-line prompt">password: <span class="password-field" id="passwordField"></span><span class="cursor-blink"></span></div>
+                    </div>
+                  </div>
+                  <div class="kvm-stand-large"></div>
+                  <div class="kvm-base"></div>
+                </div>
+                
+                <!-- Coworker standing next to tech -->
+                <div class="coworker-person">
+                  <div class="coworker-hair"></div>
+                  <div class="coworker-head"></div>
+                  <div class="coworker-body"></div>
+                  <div class="coworker-badge-lanyard"></div>
+                  <div class="coworker-badge"></div>
+                </div>
+                
+                <!-- Tech from behind (large, no arms) -->
+                <div class="tech-from-behind">
+                  <div class="tech-hair"></div>
+                  <div class="tech-back-head"></div>
+                  <div class="tech-back-body"></div>
+                  <div class="tech-badge-lanyard"></div>
+                  <div class="tech-badge-back"></div>
+                </div>
+                
+                <!-- Shoulder surfer (vendor) -->
+                <div class="shoulder-surfer">
+                  <div class="surfer-lean-indicator">👀 Watching Screen</div>
+                  <div class="surfer-body">
+                    <div class="surfer-head">
+                      <div class="surfer-face"></div>
+                      <div class="surfer-eye"></div>
+                    </div>
+                    <div class="surfer-torso"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- FIXED: Shoulder surfer hotspot - covers the surfer figure -->
+          <div class="hotspot" data-obs="shouldersurf" style="bottom: 3%; right: 3%; width: 120px; height: 220px;">
+            <div class="hotspot-glow"></div>
+            <div class="hotspot-label">Shoulder Surfer — Drag to log</div>
+          </div>
+          <!-- FIXED: Visible password hotspot - covers the KVM screen -->
+          <div class="hotspot" data-obs="visiblepassword" style="bottom: 55%; left: 50%; transform: translateX(-50%); width: 280px; height: 190px;">
+            <div class="hotspot-glow"></div>
+            <div class="hotspot-label">Visible Password — Drag to log</div>
+          </div>
+          <!-- FIXED: Open cages hotspot - covers the server racks at top -->
+          <div class="hotspot" data-obs="opencages" style="top: 2%; left: 5%; width: 90%; height: 165px;">
+            <div class="hotspot-glow"></div>
+            <div class="hotspot-label">Open Server Cages — Drag to log</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scene 4: Loading Dock -->
+      <div class="scene scene-loadingdock" data-zone="4">
+        <div class="scene-view">
+          <div class="scene-bg">
+            <!-- Ceiling -->
+            <div class="dock-ceiling">
+              <div class="ceiling-beam"></div>
+              <div class="ceiling-beam"></div>
+              <div class="ceiling-beam"></div>
+              <div class="ceiling-beam"></div>
+              <div class="dock-light"></div>
+              <div class="dock-light"></div>
+            </div>
+            
+            <!-- Walls -->
+            <div class="dock-walls"></div>
+            
+            <!-- Loading bays -->
+            <div class="loading-bay bay1">
+              <div class="bay-number">BAY 1</div>
+              <div class="rollup-door open"></div>
+            </div>
+            <div class="loading-bay bay2">
+              <div class="bay-number">BAY 2</div>
+              <div class="rollup-door"></div>
+            </div>
+            
+            <!-- Floor -->
+            <div class="dock-floor">
+              <div class="floor-lines"></div>
+            </div>
+            
+            <!-- Safety signs -->
+            <div class="safety-sign caution">⚠ CAUTION: Forklift Traffic</div>
+            <div class="safety-sign loading">🚛 Loading Zone</div>
+            
+            <!-- Delivery truck -->
+            <div class="delivery-truck">
+              <div class="truck-body">
+                <div class="truck-body-stripe"></div>
+                <div class="truck-logo">EXPRESS LOGISTICS</div>
+              </div>
+              <div class="truck-cab">
+                <div class="truck-windshield"></div>
+                <div class="truck-door"></div>
+              </div>
+              <div class="truck-wheels">
+                <div class="truck-wheel"></div>
+                <div class="truck-wheel"></div>
+                <div class="truck-wheel"></div>
+              </div>
+            </div>
+            
+            <!-- Pallets and cargo -->
+            <div class="pallet pallet1"></div>
+            <div class="pallet pallet2"></div>
+            <div class="cargo-box box1"></div>
+            <div class="cargo-box box2"></div>
+            <div class="cargo-box box3"></div>
+            <div class="cargo-box box4"></div>
+            <div class="cargo-box box5"></div>
+            
+            <!-- Server equipment crate -->
+            <div class="server-crate">
+              <div class="crate-label">Server Equipment</div>
+              <div class="crate-fragile">⚠ FRAGILE</div>
+            </div>
+            
+            <!-- Workers -->
+            <div class="dock-worker worker1" id="dockWorker1">
+              <div class="worker-hardhat"></div>
+              <div class="worker-head"></div>
+              <div class="worker-body"></div>
+              <div class="worker-legs"></div>
+            </div>
+            <div class="dock-worker worker2" id="dockWorker2">
+              <div class="worker-hardhat"></div>
+              <div class="worker-head"></div>
+              <div class="worker-body"></div>
+              <div class="worker-legs"></div>
+            </div>
+            <div class="dock-worker worker3" id="dockWorker3">
+              <div class="worker-hardhat"></div>
+              <div class="worker-head"></div>
+              <div class="worker-body"></div>
+              <div class="worker-legs"></div>
+            </div>
+            
+            <!-- Waste area -->
+            <div class="waste-area">
+              <div class="waste-bin" id="wasteBin">
+                <div class="bin-label">Decom</div>
+                <div class="bin-papers">
+                  <span class="paper-text" style="top: 2px; left: 3px;">SRV-0847</span>
+                  <span class="paper-text" style="top: 8px; left: 5px;">db-prod</span>
+                  <span class="paper-text" style="top: 14px; left: 2px;">10.42.8</span>
+                </div>
+              </div>
+              <div class="recycling-bin">
+                <div class="recycling-symbol">♻️</div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- FIXED: Bin hotspot - covers waste bin -->
+          <div class="hotspot" data-obs="bin" data-popup="vendordoc" style="bottom: 34%; left: 4.5%; width: 55px; height: 65px;">
+            <div class="hotspot-glow"></div>
+            <div class="hotspot-label">Waste Bin — Drag to log</div>
+          </div>
+          <!-- FIXED: Rollup door hotspot - covers open bay 1 -->
+          <div class="hotspot" data-obs="rollup" style="top: 15%; left: 5%; width: 28%; height: 52%;">
+            <div class="hotspot-glow"></div>
+            <div class="hotspot-label">Open Bay Door — Drag to log</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scene 5: Generator Yard - DETAILED -->
+      <div class="scene scene-generator" data-zone="5">
+        <div class="scene-view">
+          <div class="scene-bg">
+            <!-- Sky -->
+            <div class="generator-sky">
+              <div class="generator-stars"></div>
+            </div>
+            
+            <!-- Ground -->
+            <div class="yard-ground">
+              <div class="gravel"></div>
+            </div>
+            
+            <!-- Concrete pad -->
+            <div class="concrete-pad"></div>
+            
+            <!-- Partial fence showing gap -->
+            <div class="partial-fence"></div>
+            <div class="fence-end-post"></div>
+            <div class="no-fence-sign">← No Fence This Side</div>
+            
+            <!-- Danger sign -->
+            <div class="danger-sign">
+              <div class="danger-sign-icon">⚡</div>
+              <div class="danger-sign-text">High<br>Voltage</div>
+              <div class="danger-sign-post"></div>
+            </div>
+            
+            <!-- Security camera (offline) -->
+            <div class="yard-camera">
+              <div class="yard-camera-lens"></div>
+              <div class="yard-camera-mount"></div>
+              <div class="camera-offline">OFFLINE</div>
+            </div>
+            
+            <!-- Main generator unit -->
+            <div class="generator-unit">
+              <div class="generator-label">⚡ Backup Generator 500kW</div>
+              <div class="generator-vents"></div>
+              <div class="generator-engine-cover">
+                <div class="engine-label">Diesel Engine</div>
+              </div>
+              <div class="generator-panel">
+                <div class="panel-lights">
+                  <div class="panel-light green"></div>
+                  <div class="panel-light yellow"></div>
+                </div>
+                <div class="panel-display">STANDBY</div>
+              </div>
+              <div class="generator-exhaust">
+                <div class="exhaust-cap"></div>
+              </div>
+            </div>
+            
+            <!-- Fuel tank -->
+            <div class="fuel-tank">
+              <div class="fuel-warning">⚠️</div>
+              <div class="fuel-gauge"></div>
+              <div class="fuel-label">Diesel</div>
+              <div class="fuel-tank-legs">
+                <div class="fuel-leg"></div>
+                <div class="fuel-leg"></div>
+              </div>
+            </div>
+            
+            <!-- HVAC unit -->
+            <div class="hvac-unit">
+              <div class="hvac-fan"></div>
+              <div class="hvac-label">HVAC</div>
+            </div>
+            
+            <!-- Conduit run -->
+            <div class="conduit-run"></div>
+            
+            <!-- Transfer switch - OPEN -->
+            <div class="transfer-switch">
+              <div class="switch-warning">⚠ Cabinet Open</div>
+              <div class="switch-door">
+                <div class="switch-door-handle"></div>
+              </div>
+              <div class="switch-interior">
+                <div class="breaker-row row1">
+                  <div class="breaker"></div>
+                  <div class="breaker"></div>
+                </div>
+                <div class="breaker-row row2">
+                  <div class="breaker"></div>
+                  <div class="breaker off"></div>
+                </div>
+                <div class="breaker-row row3">
+                  <div class="breaker off"></div>
+                  <div class="breaker"></div>
+                </div>
+                <div class="switch-label">Auto Transfer Switch</div>
+              </div>
+            </div>
+            
+            <!-- Utility pole and lines -->
+            <div class="utility-pole">
+              <div class="utility-crossarm">
+                <div class="utility-insulator"></div>
+                <div class="utility-insulator"></div>
+                <div class="utility-insulator"></div>
+              </div>
+            </div>
+            <div class="utility-wire"></div>
+            <div class="utility-wire wire2"></div>
+            <div class="utility-wire wire3"></div>
+            
+            <!-- Access path (no gate) -->
+            <div class="access-path">
+              <div class="path-label">Utility Access — No Gate</div>
+            </div>
+          </div>
+          
+          <!-- FIXED: Transfer switch hotspot - covers the open switch cabinet -->
+          <div class="hotspot" data-obs="switch" style="bottom: 26%; right: 10%; width: 95px; height: 145px;">
+            <div class="hotspot-glow"></div>
+            <div class="hotspot-label">Transfer Switch — Drag to log</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="nav-controls">
+      <button class="btn nav-btn" id="backBtn" disabled>← Back</button>
+      <button class="btn btn-primary nav-btn" id="forwardBtn">Move Forward →</button>
+    </div>
+  </main>
+
+  <aside class="right-panel">
+    <div class="panel-header">
+      <div class="panel-title">
+        Security Tour Log
+        <span class="panel-badge" id="logCount">0</span>
+      </div>
+    </div>
+    <div class="log-filters">
+      <button class="filter-btn active" data-filter="all">All</button>
+      <button class="filter-btn" data-filter="0">Gate</button>
+      <button class="filter-btn" data-filter="1">Lobby</button>
+      <button class="filter-btn" data-filter="2">Mantrap</button>
+      <button class="filter-btn" data-filter="3">Server</button>
+      <button class="filter-btn" data-filter="4">Dock</button>
+      <button class="filter-btn" data-filter="5">Gen</button>
+    </div>
+    <div class="log-container">
+      <div class="log-drop-zone" id="logDropZone">
+        <div class="log-drop-zone-icon">⬇</div>
+        <div>Drag highlighted items here</div>
+      </div>
+      <div class="logged-items" id="loggedItems"></div>
+    </div>
+    <div class="finish-tour-container" id="finishTourContainer">
+      <button class="btn btn-primary finish-tour-btn" id="finishTourBtn">Finish Tour →</button>
+    </div>
+    
+    <!-- Zone Narrative Panel -->
+    <div class="zone-narrative-panel">
+      <div class="narrative-header">
+        📍 What's Happening Here
+      </div>
+      <div class="narrative-content" id="narrativeContent">
+        <div class="narrative-title">Perimeter Gate</div>
+        <div class="narrative-text">A delivery truck tailgates through the gate behind an authorized vehicle. The badge reader stands in the public zone without physical barriers — vulnerable to tampering or card cloning attempts.</div>
+      </div>
+    </div>
+  </aside>
+
+  <footer class="footer">
+    <div class="status-left">
+      <div class="status-indicator">
+        <div class="status-dot-footer"></div>
+        <span id="zoneStatus">Zone 1 of 6</span>
+      </div>
+      <span class="mono">DFW-3</span>
+      <span>Tour in progress</span>
+    </div>
+    <div><span id="currentTime" class="mono"></span></div>
+  </footer>
+
+  <div class="panel-scrim" id="panelScrim"></div>
+</div>
+
+<!-- Modals -->
+<div class="modal-overlay" id="openingModal">
+  <div class="modal">
+    <div class="modal-title">Halcyon Cloud — DFW-3 Physical Security Tour</div>
+    <div class="modal-subtitle">You're a physical security analyst beginning a walkthrough of Data Center DFW-3. Move through each security zone, observe what's happening, and log every weak point you find.</div>
+    
+    <div class="modal-context">
+      <div class="modal-context-title">About DFW-3's Client Base</div>
+      <div class="client-grid">
+        <div class="client-badge healthcare">
+          <div class="client-badge-icon">🏥</div>
+          <span>Regional Health Networks</span>
+        </div>
+        <div class="client-badge financial">
+          <div class="client-badge-icon">🏦</div>
+          <span>Credit Union Systems</span>
+        </div>
+        <div class="client-badge government">
+          <div class="client-badge-icon">🏛</div>
+          <span>State Agency Backups</span>
+        </div>
+        <div class="client-badge retail">
+          <div class="client-badge-icon">🛒</div>
+          <span>E-commerce Platforms</span>
+        </div>
+      </div>
+      <div class="impact-warning">
+        <strong>⚠ Why this matters:</strong>
+        A physical breach here could expose protected health information (PHI), credit card data (PCI-DSS), citizen PII from government systems, and transaction records from retail clients. Regulatory fines, lawsuits, and loss of client trust would follow.
+      </div>
+    </div>
+    
+    <div class="modal-goals">
+      <div class="modal-goal"><div class="goal-number">1</div><span>Log all physical vulnerabilities by dragging them to the log.</span></div>
+      <div class="modal-goal"><div class="goal-number">2</div><span>Tag each logged item with the attack it could enable.</span></div>
+    </div>
+    <button class="btn btn-primary modal-btn" id="beginTourBtn">Begin Tour</button>
+  </div>
+</div>
+
+<div class="modal-overlay hidden" id="vulnModal">
+  <div class="modal">
+    <div class="modal-title">Common Physical Security Vulnerabilities</div>
+    <div class="modal-subtitle">Before the assessment, review these key physical attack techniques that exploit the vulnerabilities you observed:</div>
+    
+    <div class="vuln-list">
+      <div class="vuln-item">
+        <div class="vuln-name">Tailgating</div>
+        <div class="vuln-desc">Following an authorized person through a secured entrance without using your own credentials. The attacker relies on social pressure — people often hold doors open out of politeness.</div>
+      </div>
+      <div class="vuln-item">
+        <div class="vuln-name">Piggybacking</div>
+        <div class="vuln-desc">Similar to tailgating, but with the authorized person's knowledge or consent. Often occurs when visitors claim to have forgotten their badge or are carrying heavy items.</div>
+      </div>
+      <div class="vuln-item">
+        <div class="vuln-name">Shoulder Surfing</div>
+        <div class="vuln-desc">Observing someone entering credentials, PINs, or sensitive information by looking over their shoulder. Can happen at keypads, computer terminals, or badge readers.</div>
+      </div>
+      <div class="vuln-item">
+        <div class="vuln-name">Dumpster Diving</div>
+        <div class="vuln-desc">Searching through trash or recycling bins for sensitive documents, discarded equipment, or information that wasn't properly destroyed before disposal.</div>
+      </div>
+      <div class="vuln-item">
+        <div class="vuln-name">Card Cloning</div>
+        <div class="vuln-desc">Copying the data from an access card using a portable reader. Attackers can then create duplicate cards to gain unauthorized access to secured areas.</div>
+      </div>
+    </div>
+    
+    <button class="btn btn-primary modal-btn" id="continueToAssessmentBtn">Continue to Assessment →</button>
+  </div>
+</div>
+
+<div class="assessment-overlay hidden" id="assessmentOverlay">
+  <div class="assessment-panel">
+    <div class="assessment-header">
+      <div class="assessment-title">Security Assessment</div>
+      <div class="assessment-progress" id="assessmentProgress">Question 1 of 2</div>
+    </div>
+    <div class="question-stem" id="questionStem"></div>
+    <div class="answer-options" id="answerOptions"></div>
+    <div class="assessment-feedback" id="assessmentFeedback">Not quite — try again.</div>
+    <div class="assessment-actions">
+      <button class="btn btn-primary submit-answer-btn" id="submitAnswerBtn">Submit Answer</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay hidden final-modal" id="finalModal">
+  <div class="modal">
+    <div class="modal-title">Tour complete.</div>
+    <div class="modal-subtitle">You've mapped DFW-3's attack surface and logged its physical vulnerabilities. The weaknesses you found could impact healthcare patients, credit union members, government citizens, and retail customers. Return to HackStack to begin your risk assessment.</div>
+    <button class="return-btn" id="returnBtn">Return to HackStack</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"><span class="toast-icon">✓</span><span id="toastText">Observation logged</span></div>
+
+<div class="scene-transition" id="sceneTransition"><div class="transition-text">Moving to next zone...</div></div>
+
+<div class="popup-modal" id="visitorLogPopup">
+  <div class="popup-title">Visitor Sign-In Log — Today</div>
+  <table class="visitor-log-table">
+    <thead>
+      <tr>
+        <th>Full Name</th>
+        <th>Time In</th>
+        <th>Visiting</th>
+        <th>Destination</th>
+        <th>Time Out</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>Robert Martinez</td><td>07:45</td><td>J. Chen</td><td>HVAC Control Room</td><td>08:30</td></tr>
+      <tr><td>Sandra Liu</td><td>08:02</td><td>M. Johnson</td><td>Server Hall C</td><td>09:15</td></tr>
+      <tr><td>Michael Torres</td><td>08:15</td><td>S. Kumar</td><td>NOC</td><td>10:45</td></tr>
+      <tr><td>Jennifer Adams</td><td>08:30</td><td>R. Patel</td><td>Conference Room B</td><td>09:00</td></tr>
+      <tr><td>David Chen</td><td>08:47</td><td>A. Williams</td><td>Loading Dock</td><td>09:30</td></tr>
+      <tr><td>Emily Watson</td><td>09:02</td><td>T. Brown</td><td>Server Hall A</td><td>11:20</td></tr>
+      <tr><td>Thomas Williams</td><td>09:15</td><td>S. Kumar</td><td>Electrical Room</td><td>10:00</td></tr>
+      <tr><td>Amanda Foster</td><td>09:28</td><td>J. Chen</td><td>Generator Yard</td><td>10:15</td></tr>
+      <tr><td>Kevin Brown</td><td>09:45</td><td>M. Johnson</td><td>NOC</td><td>—</td></tr>
+      <tr><td>Patricia Miller</td><td>09:52</td><td>R. Patel</td><td>Server Hall B</td><td>11:30</td></tr>
+    </tbody>
+  </table>
+  <button class="btn close-popup-btn" onclick="document.getElementById('visitorLogPopup').classList.remove('show')">Close</button>
+</div>
+
+<!-- Vendor Document Popup (50% screen) -->
+<div class="document-popup" id="vendorDocPopup">
+  <div class="document-header">
+    <span class="document-header-title">Recovered Document — Waste Bin</span>
+    <button class="document-close-btn" onclick="document.getElementById('vendorDocPopup').classList.remove('show')">✕</button>
+  </div>
+  <div class="document-content">
+    <div class="document-stamp">CONFIDENTIAL</div>
+    <div class="document-letterhead">
+      <div class="document-letterhead-logo">HALCYON CLOUD</div>
+      <div class="document-letterhead-sub">Vendor Access Authorization Form</div>
+    </div>
+    
+    <div class="document-field">
+      <span class="document-label">Vendor Company:</span>
+      <span class="document-value">TechServe Solutions, Inc.</span>
+    </div>
+    <div class="document-field">
+      <span class="document-label">Vendor Contact:</span>
+      <span class="document-value document-highlight">Marcus Reynolds — (469) 555-0147</span>
+    </div>
+    <div class="document-field">
+      <span class="document-label">Vendor Badge ID:</span>
+      <span class="document-value document-highlight">V-2024-0892</span>
+    </div>
+    <div class="document-field">
+      <span class="document-label">Authorization Period:</span>
+      <span class="document-value">January 15, 2024 — January 15, 2025</span>
+    </div>
+    <div class="document-field">
+      <span class="document-label">Authorized Zones:</span>
+      <span class="document-value document-highlight">Lobby, Server Hall A, Server Hall B, Loading Dock</span>
+    </div>
+    
+    <div class="document-section">
+      <div class="document-section-title">Vendor System Access</div>
+      <div class="document-field">
+        <span class="document-label">Service Account:</span>
+        <span class="document-value document-highlight">svc_techserve@halcyon.local</span>
+      </div>
+      <div class="document-field">
+        <span class="document-label">Initial Password:</span>
+        <span class="document-value document-highlight">Welcome2024!</span>
+      </div>
+      <div class="document-field">
+        <span class="document-label">VPN Group:</span>
+        <span class="document-value">VENDOR-MAINT-RW</span>
+      </div>
+      <div class="document-field">
+        <span class="document-label">Accessible Subnets:</span>
+        <span class="document-value document-highlight">10.42.8.0/24, 10.42.12.0/24, 10.42.15.0/24</span>
+      </div>
+    </div>
+    
+    <div class="document-section">
+      <div class="document-section-title">Escort Requirements</div>
+      <div class="document-field">
+        <span class="document-label">Primary Escort:</span>
+        <span class="document-value">James Chen — Facilities Manager</span>
+      </div>
+      <div class="document-field">
+        <span class="document-label">Backup Escort:</span>
+        <span class="document-value">Sarah Kumar — IT Operations</span>
+      </div>
+    </div>
+    
+    <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #ddd; font-size: 11px; color: #666;">
+      <strong>Note:</strong> This document should have been shredded per Data Handling Policy DHP-4.2. Its presence in an unsecured waste bin represents a critical security violation.
+    </div>
+  </div>
+</div>
+
+<div class="export-preview hidden" id="exportPreview">
+  <div class="export-content">
+    <div class="export-title">Export Preview — tour_log.csv</div>
+    <pre class="export-csv" id="exportCsv"></pre>
+    <div class="export-actions"><button class="btn" id="closeExport">Close</button></div>
+  </div>
+</div>
+
+<script>
+(function() {
+  const TOTAL_EVIDENCE = 12;
+  
+  const state = {
+    currentZone: 0,
+    maxVisitedZone: 0,
+    loggedItems: [],
+    savedItems: new Set(),
+    loggedKeys: new Set(),
+    currentFilter: 'all',
+    assessmentQuestion: 0,
+    selectedAnswer: null,
+    isDragging: false,
+    dragData: null
+  };
+
+  const zones = [
+    { name: 'Perimeter Gate', short: 'Gate' },
+    { name: 'Lobby', short: 'Lobby' },
+    { name: 'Mantrap', short: 'Mantrap' },
+    { name: 'Server Hall', short: 'Server' },
+    { name: 'Loading Dock', short: 'Dock' },
+    { name: 'Generator Yard', short: 'Gen' }
+  ];
+
+  const zoneNarratives = [
+    {
+      title: 'Perimeter Gate',
+      text: 'A delivery truck tailgates through the gate behind an authorized vehicle. The badge reader stands in the public zone without physical barriers — vulnerable to tampering or card cloning attempts. The gate arm alone cannot prevent determined intruders.'
+    },
+    {
+      title: 'Lobby',
+      text: 'An employee holds the secured door open for someone carrying equipment — without verifying their identity or badge. Meanwhile, the visitor log on the reception desk shows incomplete sign-out records. Social engineering and piggybacking are the primary risks here.'
+    },
+    {
+      title: 'Mantrap / Security Airlock',
+      text: 'Both mantrap doors have been wedged open by staff for "convenience." The interlock system — designed to ensure only one door opens at a time — is completely bypassed. Anyone can now walk straight from the lobby into the server hall without authentication.'
+    },
+    {
+      title: 'Server Hall',
+      text: 'A technician types their password at a KVM console while a vendor watches from behind. The password "Summer2024!" is clearly visible on screen. Several server cages stand open. These racks contain healthcare databases, financial systems, and government backups.'
+    },
+    {
+      title: 'Loading Dock',
+      text: 'A truck is being unloaded as workers move equipment. Bay 1\'s roll-up door stands open and unmonitored. Watch as one worker heads to the waste bin — check what they\'re throwing away. A disposal bin overflows with documents showing internal system details.'
+    },
+    {
+      title: 'Generator Yard',
+      text: 'The backup generator and transfer switch sit on a concrete pad. One side has no perimeter fence — there\'s only an open utility access path. The transfer switch cabinet has been left open, exposing critical breakers. The security camera is offline. Sabotage here could cause facility-wide power loss.'
+    }
+  ];
+
+  const observations = {
+    'gatearm': { zone: 0, text: 'Delivery truck followed authorized vehicle through gate before arm dropped — entered without any credential scan' },
+    'badgereader': { zone: 0, text: 'Badge reader located in the public zone outside the fence with no barrier — anyone can walk up and attempt to tamper with or clone cards' },
+    'piggybacking': { zone: 1, text: 'Unbadged contractor entered behind badged employee who held door open — no verification of identity' },
+    'visitorlog': { zone: 1, text: 'Visitor sign-in log has incomplete entries — one visitor has no sign-out time recorded' },
+    'wedge': { zone: 2, text: 'Both mantrap doors propped open with wedges — airlock anti-tailgating control completely defeated, walk-through access to server hall' },
+    'sensor': { zone: 2, text: 'Mantrap interlock bypassed — status panel shows both doors open simultaneously, defeating the one-person-at-a-time security control' },
+    'shouldersurf': { zone: 3, text: 'Vendor watching over technician\'s shoulder as credentials are entered — classic shoulder surfing attack in progress' },
+    'visiblepassword': { zone: 3, text: 'Password "Summer2024!" clearly visible on KVM screen — anyone nearby can read and memorize admin credentials' },
+    'opencages': { zone: 3, text: 'Multiple server cages left open and unattended — physical access to healthcare, financial, and government data systems' },
+    'bin': { zone: 4, text: 'Vendor authorization form with credentials, subnets, and access details found in unsecured waste bin — critical dumpster diving vulnerability' },
+    'rollup': { zone: 4, text: 'Loading dock roll-up door left open and unmonitored — direct unauthorized entry point to facility' },
+    'switch': { zone: 5, text: 'Transfer switch cabinet left open in unfenced utility area — power infrastructure vulnerable to sabotage, could cause facility-wide outage affecting all client systems' }
+  };
+
+  const questions = [
+    {
+      stem: 'At the perimeter gate, a delivery truck slips through by following close behind an authorized vehicle before the gate arm drops, without scanning its own credentials. Which physical attack is this?',
+      correct: 'Tailgating',
+      distractors: ['Shoulder surfing', 'Dumpster diving', 'Card cloning']
+    },
+    {
+      stem: 'Across your tour, the publicly-accessible badge reader, open loading dock, exposed server cages, and unmonitored roll-up door are all ways an outsider could access the facility or its systems. Together, what do these represent?',
+      correct: 'The facility\'s attack surface',
+      distractors: ['A security control', 'A risk rating', 'A managerial policy']
+    }
+  ];
+
+  const $ = id => document.getElementById(id);
+  const logDropZone = $('logDropZone');
+  const loggedItemsEl = $('loggedItems');
+  const logCount = $('logCount');
+  const toast = $('toast');
+  const toastText = $('toastText');
+  const narrativeContent = $('narrativeContent');
+
+  let dragGhost = null;
+
+  // Design canvas the scene art was authored against.
+  const SCENE_W = 900;
+  const SCENE_H = 560;
+
+  // Scale every scene's rigid canvas to fit the current scene-container,
+  // preserving aspect ratio so all spatial relationships stay physically correct.
+  function fitScenes() {
+    const container = $('sceneContainer');
+    if (!container) return;
+    const cw = container.clientWidth;
+    const ch = container.clientHeight;
+    if (cw <= 0 || ch <= 0) return;
+    // "contain" fit — never crop the scene, never overflow.
+    const scale = Math.min(cw / SCENE_W, ch / SCENE_H);
+    document.documentElement.style.setProperty('--scene-scale', scale.toFixed(4));
+  }
+
+  let fitRaf = null;
+  function scheduleFit() {
+    if (fitRaf) cancelAnimationFrame(fitRaf);
+    fitRaf = requestAnimationFrame(fitScenes);
+  }
+
+  function showToast(text) {
+    toastText.textContent = text;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2500);
+  }
+
+  function updateTime() {
+    $('currentTime').textContent = new Date().toLocaleTimeString('en-US', { hour12: false });
+  }
+
+  function shuffleArray(arr) {
+    const s = [...arr];
+    for (let i = s.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [s[i], s[j]] = [s[j], s[i]];
+    }
+    return s;
+  }
+
+  function updateZoneMap() {
+    document.querySelectorAll('.zone-node').forEach((node, i) => {
+      node.classList.remove('current', 'visited', 'locked');
+      if (i === state.currentZone) node.classList.add('current');
+      else if (i <= state.maxVisitedZone) node.classList.add('visited');
+      else node.classList.add('locked');
+    });
+  }
+
+  function updateNavButtons() {
+    $('backBtn').disabled = state.currentZone === 0;
+    $('forwardBtn').disabled = state.currentZone >= 5;
+    $('forwardBtn').textContent = state.currentZone >= 5 ? 'End of Tour' : 'Move Forward →';
+  }
+
+  function updateZoneStatus() {
+    $('zoneStatus').textContent = `Zone ${state.currentZone + 1} of 6`;
+  }
+
+  function updateNarrative(zone) {
+    const narrative = zoneNarratives[zone];
+    narrativeContent.innerHTML = `
+      <div class="narrative-title">${narrative.title}</div>
+      <div class="narrative-text">${narrative.text}</div>
+    `;
+  }
+
+  function switchScene(zone) {
+    document.querySelectorAll('.scene').forEach(s => s.classList.remove('active'));
+    document.querySelector(`.scene[data-zone="${zone}"]`)?.classList.add('active');
+    setTimeout(() => playZoneAnimation(zone), 300);
+    updateNarrative(zone);
+    updateHotspotStates();
+  }
+
+  function navigateToZone(zone) {
+    if (zone < 0 || zone > 5 || zone > state.maxVisitedZone + 1) return;
+    $('sceneTransition').classList.add('active');
+    setTimeout(() => {
+      state.currentZone = zone;
+      if (zone > state.maxVisitedZone) state.maxVisitedZone = zone;
+      updateZoneMap();
+      updateNavButtons();
+      updateZoneStatus();
+      switchScene(zone);
+      setTimeout(() => $('sceneTransition').classList.remove('active'), 200);
+    }, 300);
+  }
+
+  function playZoneAnimation(zone) {
+    if (zone === 0) {
+      const gateArm = $('gateArm'), authV = $('authVehicle'), tailV = $('tailgateVehicle');
+      gateArm.classList.remove('raised');
+      authV.style.transition = 'none'; tailV.style.transition = 'none';
+      authV.style.bottom = '38%'; tailV.style.bottom = '8%'; tailV.style.opacity = '0';
+      authV.offsetHeight;
+      setTimeout(() => { gateArm.classList.add('raised'); tailV.style.opacity = '1'; }, 500);
+      setTimeout(() => { authV.style.transition = 'bottom 2s'; authV.style.bottom = '70%'; }, 800);
+      setTimeout(() => { tailV.style.transition = 'bottom 1.5s'; tailV.style.bottom = '52%'; }, 1200);
+      setTimeout(() => gateArm.classList.remove('raised'), 2800);
+    }
+    if (zone === 1) {
+      const emp = $('lobbyEmployee'), con = $('lobbyContractor'), visitor = $('lobbyVisitor');
+      const door = $('entryDoor');
+      
+      emp.style.transition = 'none'; 
+      con.style.transition = 'none';
+      visitor.style.transition = 'none';
+      emp.style.left = '5%'; 
+      con.style.left = '-5%'; 
+      con.style.opacity = '0';
+      emp.style.opacity = '1';
+      visitor.style.bottom = '-10%';
+      visitor.style.left = '50%';
+      visitor.style.opacity = '0';
+      door.style.transition = 'none';
+      door.style.transform = 'none';
+      emp.offsetHeight;
+      
+      setTimeout(() => { con.style.opacity = '1'; }, 300);
+      setTimeout(() => { emp.style.transition = 'left 3s ease-in-out'; emp.style.left = '72%'; }, 500);
+      setTimeout(() => { con.style.transition = 'left 3s ease-in-out'; con.style.left = '62%'; }, 800);
+      setTimeout(() => { door.style.transition = 'transform 0.5s'; door.style.transform = 'perspective(200px) rotateY(-60deg)'; }, 3200);
+      setTimeout(() => { con.style.transition = 'left 1s ease-in-out, opacity 0.3s'; con.style.left = '85%'; }, 3500);
+      setTimeout(() => { con.style.opacity = '0'; }, 4200);
+      setTimeout(() => { emp.style.transition = 'left 1s ease-in-out, opacity 0.3s'; emp.style.left = '85%'; }, 4000);
+      setTimeout(() => { emp.style.opacity = '0'; }, 4700);
+      setTimeout(() => { door.style.transform = 'none'; }, 5000);
+      setTimeout(() => { visitor.style.opacity = '1'; visitor.style.transition = 'bottom 2s ease-in-out, left 2s ease-in-out'; visitor.style.bottom = '15%'; }, 5500);
+    }
+    if (zone === 3) {
+      // Password typing animation
+      const passwordField = $('passwordField');
+      const password = 'Summer2024!';
+      let index = 0;
+      passwordField.textContent = '';
+      
+      const typePassword = () => {
+        if (index < password.length) {
+          passwordField.textContent += password[index];
+          index++;
+          setTimeout(typePassword, 200 + Math.random() * 150);
+        }
+      };
+      
+      setTimeout(typePassword, 1500);
+    }
+    if (zone === 4) {
+      // Worker walks to bin animation
+      const worker3 = $('dockWorker3');
+      worker3.style.transition = 'none';
+      worker3.style.left = '25%';
+      worker3.style.bottom = '36%';
+      worker3.offsetHeight;
+      
+      setTimeout(() => {
+        worker3.style.transition = 'left 2s ease-in-out';
+        worker3.style.left = '8%';
+      }, 2000);
+      
+      setTimeout(() => {
+        // Worker "throws" something
+        worker3.style.transition = 'bottom 0.3s ease-out';
+        worker3.style.bottom = '38%';
+      }, 4000);
+      
+      setTimeout(() => {
+        worker3.style.transition = 'bottom 0.2s ease-in';
+        worker3.style.bottom = '36%';
+      }, 4300);
+      
+      setTimeout(() => {
+        worker3.style.transition = 'left 2s ease-in-out';
+        worker3.style.left = '25%';
+      }, 5000);
+    }
+  }
+
+  function updateHotspotStates() {
+    document.querySelectorAll('.hotspot').forEach(h => {
+      const key = h.dataset.obs;
+      if (state.loggedKeys.has(key)) {
+        h.classList.add('logged');
+        // Settle the object's glow into the steady green "done" state.
+        if (h._glowTargets) {
+          h._glowTargets.forEach(el => {
+            el.classList.remove('object-hover');
+            el.classList.add('object-logged');
+          });
+        }
+      }
+    });
+  }
+
+  function setupDragDrop() {
+    document.querySelectorAll('.hotspot').forEach(hotspot => {
+      hotspot.addEventListener('mousedown', startDrag);
+      hotspot.addEventListener('touchstart', startDrag, { passive: false });
+      
+      hotspot.addEventListener('click', (e) => {
+        const popup = hotspot.dataset.popup;
+        if (popup === 'visitorlog') $('visitorLogPopup').classList.add('show');
+        if (popup === 'vendordoc') $('vendorDocPopup').classList.add('show');
+      });
+    });
+
+    document.addEventListener('mousemove', onDrag);
+    document.addEventListener('touchmove', onDrag, { passive: false });
+    document.addEventListener('mouseup', endDrag);
+    document.addEventListener('touchend', endDrag);
+
+    setupObjectGlows();
+  }
+
+  // Maps each observation to the real scene object(s) that should glow, using
+  // selectors scoped to the hotspot's own scene. The glow is applied to the art
+  // itself (via a drop-shadow filter) so it hugs the object's shape rather than
+  // sitting in a box over it. Hotspots keep their exact hit-area for dragging.
+  const GLOW_TARGETS = {
+    gatearm:        ['.gate-housing'],
+    badgereader:    ['.badge-reader-station'],
+    piggybacking:   ['#entryDoor'],
+    visitorlog:     ['.visitor-log-book'],
+    wedge:          ['.door-wedge-outer', '.door-wedge-inner'],
+    sensor:         ['.status-panel'],
+    shouldersurf:   ['.shoulder-surfer'],
+    visiblepassword:['.kvm-monitor-large'],
+    opencages:      ['.bg-rack.has-cage'],
+    bin:            ['#wasteBin'],
+    rollup:         ['.loading-bay.bay1 .rollup-door.open'],
+    switch:         ['.transfer-switch']
+  };
+
+  // For each hotspot, find its object(s) within the same scene and glow them.
+  // Also link hover: pointing at the hotspot brightens the object's glow.
+  function setupObjectGlows() {
+    document.querySelectorAll('.hotspot').forEach(hotspot => {
+      const key = hotspot.dataset.obs;
+      const selectors = GLOW_TARGETS[key];
+      if (!selectors) return;
+      const scene = hotspot.closest('.scene');
+      if (!scene) return;
+
+      const targets = [];
+      selectors.forEach(sel => scene.querySelectorAll(sel).forEach(el => targets.push(el)));
+      if (!targets.length) return;
+
+      // Remember the object(s) on the hotspot for quick logged/hover updates.
+      hotspot._glowTargets = targets;
+      targets.forEach(el => el.classList.add('object-glow'));
+
+      const setHover = on => targets.forEach(el => {
+        if (el.classList.contains('object-logged')) return;
+        el.classList.toggle('object-hover', on);
+      });
+      hotspot.addEventListener('mouseenter', () => setHover(true));
+      hotspot.addEventListener('mouseleave', () => setHover(false));
+    });
+  }
+
+  // A "compact" layout is one where the log lives in a slide-over drawer
+  // instead of a permanently visible column. In that mode the drop zone can be
+  // off-screen, so we let students simply TAP a hotspot to log it.
+  function isCompactLayout() {
+    return window.matchMedia('(max-width: 1100px)').matches;
+  }
+
+  function startDrag(e) {
+    const hotspot = e.currentTarget;
+    const obsKey = hotspot.dataset.obs;
+
+    if (state.loggedKeys.has(obsKey)) {
+      showToast('Already logged');
+      return;
+    }
+
+    e.preventDefault();
+    state.isDragging = true;
+    state.dragData = obsKey;
+    state.dragPopup = hotspot.dataset.popup || null;
+    state.dragMoved = false;
+    const pos0 = e.touches ? e.touches[0] : e;
+    state.dragStartX = pos0.clientX;
+    state.dragStartY = pos0.clientY;
+    hotspot.classList.add('dragging');
+
+    dragGhost = document.createElement('div');
+    dragGhost.className = 'drag-ghost';
+    dragGhost.textContent = observations[obsKey]?.text.substring(0, 60) + '...' || 'Observation';
+    document.body.appendChild(dragGhost);
+
+    dragGhost.style.left = (pos0.clientX + 10) + 'px';
+    dragGhost.style.top = (pos0.clientY + 10) + 'px';
+
+    // On compact layouts, open the log immediately so the drop zone is on-screen
+    // and beside the scene — the student can drag straight into it. (The scene
+    // rescales via ResizeObserver so no hotspot gets hidden.)
+    if (isCompactLayout()) {
+      const app = $('app');
+      app.classList.add('right-open');
+      app.classList.remove('left-open');
+      hideLogHint();
+    }
+    logDropZone.classList.add('drag-over');
+  }
+
+  function onDrag(e) {
+    if (!state.isDragging || !dragGhost) return;
+    e.preventDefault();
+
+    const pos = e.touches ? e.touches[0] : e;
+    dragGhost.style.left = (pos.clientX + 10) + 'px';
+    dragGhost.style.top = (pos.clientY + 10) + 'px';
+
+    const dx = pos.clientX - state.dragStartX;
+    const dy = pos.clientY - state.dragStartY;
+    if (Math.hypot(dx, dy) > 8) state.dragMoved = true;
+
+    // Highlight the drop zone whenever the pointer is over it (works in every layout).
+    const rect = logDropZone.getBoundingClientRect();
+    const over = rect.width > 0 &&
+                 pos.clientX >= rect.left && pos.clientX <= rect.right &&
+                 pos.clientY >= rect.top && pos.clientY <= rect.bottom;
+    logDropZone.classList.toggle('drag-over', over);
+  }
+
+  function endDrag(e) {
+    if (!state.isDragging) return;
+
+    const key = state.dragData;
+    const popup = state.dragPopup;
+    const wasTap = !state.dragMoved;
+    const pos = e.changedTouches ? e.changedTouches[0] : e;
+
+    let logIt = false;
+    // A genuine drop onto the (now always-visible) drop zone works in every layout.
+    const rect = logDropZone.getBoundingClientRect();
+    const droppedOnZone = key && rect.width > 0 &&
+        pos.clientX >= rect.left && pos.clientX <= rect.right &&
+        pos.clientY >= rect.top && pos.clientY <= rect.bottom;
+
+    if (droppedOnZone) {
+      logIt = true;
+    } else if (isCompactLayout() && wasTap && key) {
+      // Touch shortcut: a tap on a hotspot logs it without a full drag.
+      logIt = true;
+    }
+
+    document.querySelectorAll('.hotspot.dragging').forEach(h => h.classList.remove('dragging'));
+    if (dragGhost) { dragGhost.remove(); dragGhost = null; }
+    logDropZone.classList.remove('drag-over');
+    state.isDragging = false;
+    state.dragData = null;
+    state.dragPopup = null;
+
+    if (logIt) {
+      addLoggedItem(key);
+      // On touch, a tap on a document hotspot should still reveal the document.
+      if (isCompactLayout() && wasTap && popup) {
+        if (popup === 'visitorlog') $('visitorLogPopup').classList.add('show');
+        if (popup === 'vendordoc') $('vendorDocPopup').classList.add('show');
+      }
+      if (isCompactLayout()) {
+        // Keep the log open so the student can write the attack surface.
+        const app = $('app');
+        app.classList.add('right-open');
+        app.classList.remove('left-open');
+      }
+    }
+  }
+
+  function addLoggedItem(obsKey) {
+    if (state.loggedKeys.has(obsKey)) return;
+    
+    const obs = observations[obsKey];
+    if (!obs) return;
+
+    state.loggedKeys.add(obsKey);
+    const itemId = 'log-' + Date.now();
+    state.loggedItems.unshift({ key: obsKey, id: itemId, zone: obs.zone, text: obs.text, attackSurface: '' });
+
+    const el = document.createElement('div');
+    el.className = 'logged-item';
+    el.dataset.id = itemId;
+    el.dataset.zone = obs.zone;
+    el.innerHTML = `
+      <div class="logged-item-header"><span class="logged-item-zone">${zones[obs.zone].short}</span></div>
+      <div class="logged-item-text">${obs.text}</div>
+      <textarea class="attack-surface-input" placeholder="What attack could this enable? (e.g., piggybacking, tailgating, shoulder surfing, dumpster diving, card cloning, etc.)" rows="2"></textarea>
+      <div class="logged-item-actions"><button class="btn btn-primary save-btn" disabled>Save</button></div>
+    `;
+
+    const textarea = el.querySelector('textarea');
+    const saveBtn = el.querySelector('.save-btn');
+
+    textarea.addEventListener('input', () => {
+      saveBtn.disabled = textarea.value.trim() === '';
+    });
+
+    saveBtn.addEventListener('click', () => {
+      const item = state.loggedItems.find(i => i.id === itemId);
+      if (item) {
+        item.attackSurface = textarea.value.trim();
+        state.savedItems.add(itemId);
+        el.querySelector('.logged-item-actions').innerHTML = '<span class="saved-indicator">✓ Saved</span>';
+        textarea.disabled = true;
+        textarea.style.opacity = '0.7';
+        showToast('Observation saved');
+        updateLogCount();
+        checkCompletion();
+      }
+    });
+
+    loggedItemsEl.prepend(el);
+    updateLogCount();
+    applyFilter();
+    updateHotspotStates();
+    showToast('Dropped! Now describe what attack this enables.');
+  }
+
+  function updateLogCount() {
+    logCount.textContent = state.loggedKeys.size;
+    const mini = $('logCountMini');
+    if (mini) mini.textContent = state.loggedKeys.size;
+  }
+
+  function checkCompletion() {
+    if (state.loggedKeys.size >= TOTAL_EVIDENCE && state.savedItems.size >= 1) {
+      $('finishTourContainer').classList.add('visible');
+    }
+  }
+
+  function applyFilter() {
+    loggedItemsEl.querySelectorAll('.logged-item').forEach(item => {
+      item.style.display = (state.currentFilter === 'all' || item.dataset.zone === state.currentFilter) ? 'block' : 'none';
+    });
+  }
+
+  function showVulnModal() {
+    $('vulnModal').classList.remove('hidden');
+  }
+
+  function showAssessment() {
+    $('vulnModal').classList.add('hidden');
+    state.assessmentQuestion = 0;
+    state.selectedAnswer = null;
+    $('assessmentOverlay').classList.remove('hidden');
+    renderQuestion();
+  }
+
+  function renderQuestion() {
+    const q = questions[state.assessmentQuestion];
+    $('assessmentProgress').textContent = `Question ${state.assessmentQuestion + 1} of 2`;
+    $('questionStem').textContent = q.stem;
+    $('assessmentFeedback').classList.remove('wrong');
+    state.selectedAnswer = null;
+
+    const letters = ['A', 'B', 'C', 'D'];
+    let opts = [q.correct, ...q.distractors];
+    let shuffled;
+    let attempts = 0;
+    do { shuffled = shuffleArray(opts); attempts++; } while (shuffled[1] === q.correct && attempts < 50);
+
+    $('answerOptions').innerHTML = '';
+    shuffled.forEach((opt, i) => {
+      const el = document.createElement('div');
+      el.className = 'answer-option';
+      el.innerHTML = `<span class="option-letter">${letters[i]}</span><span>${opt}</span>`;
+      el.addEventListener('click', () => {
+        state.selectedAnswer = opt;
+        $('answerOptions').querySelectorAll('.answer-option').forEach(o => o.classList.remove('selected'));
+        el.classList.add('selected');
+        $('assessmentFeedback').classList.remove('wrong');
+      });
+      $('answerOptions').appendChild(el);
+    });
+  }
+
+  function submitAnswer() {
+    if (!state.selectedAnswer) return;
+    const q = questions[state.assessmentQuestion];
+    if (state.selectedAnswer === q.correct) {
+      if (state.assessmentQuestion === 0) {
+        state.assessmentQuestion = 1;
+        state.selectedAnswer = null;
+        renderQuestion();
+      } else {
+        $('assessmentOverlay').classList.add('hidden');
+        $('finalModal').classList.remove('hidden');
+      }
+    } else {
+      $('assessmentFeedback').classList.add('wrong');
+    }
+  }
+
+  function exportLog() {
+    let csv = 'Zone,Observation,Attack Surface\n';
+    state.loggedItems.forEach(item => {
+      if (state.savedItems.has(item.id)) {
+        csv += `"${zones[item.zone].name}","${item.text.replace(/"/g, '""')}","${item.attackSurface.replace(/"/g, '""')}"\n`;
+      }
+    });
+    $('exportCsv').textContent = csv;
+    $('exportPreview').classList.remove('hidden');
+    showToast('Export ready');
+  }
+
+  function init() {
+    setupDragDrop();
+
+    $('beginTourBtn').addEventListener('click', () => {
+      $('openingModal').classList.add('hidden');
+      playZoneAnimation(0);
+      updateNarrative(0);
+      // After the first vignette finishes playing, nudge students toward the Log.
+      setTimeout(showLogHint, 2900);
+    });
+
+    $('backBtn').addEventListener('click', () => navigateToZone(state.currentZone - 1));
+    $('forwardBtn').addEventListener('click', () => navigateToZone(state.currentZone + 1));
+
+    document.querySelectorAll('.zone-node').forEach(node => {
+      node.addEventListener('click', () => {
+        const z = parseInt(node.dataset.zone);
+        if (z <= state.maxVisitedZone) navigateToZone(z);
+      });
+    });
+
+    $('replayZoneBtn').addEventListener('click', () => playZoneAnimation(state.currentZone));
+    $('exportLogBtn').addEventListener('click', exportLog);
+    $('closeExport').addEventListener('click', () => $('exportPreview').classList.add('hidden'));
+
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        state.currentFilter = btn.dataset.filter;
+        applyFilter();
+      });
+    });
+
+    $('finishTourBtn').addEventListener('click', showVulnModal);
+    $('continueToAssessmentBtn').addEventListener('click', showAssessment);
+    $('submitAnswerBtn').addEventListener('click', submitAnswer);
+    $('returnBtn').addEventListener('click', () => {});
+
+    updateTime();
+    setInterval(updateTime, 1000);
+
+    // Responsive scene scaling
+    fitScenes();
+    window.addEventListener('resize', scheduleFit);
+    window.addEventListener('orientationchange', scheduleFit);
+    if (window.ResizeObserver) {
+      const ro = new ResizeObserver(scheduleFit);
+      ro.observe($('sceneContainer'));
+    }
+
+    // Collapsible side panels (tablets / small Chromebooks)
+    setupPanelToggles();
+  }
+
+  function setupPanelToggles() {
+    const app = $('app');
+    const openLeft = () => { app.classList.add('left-open'); app.classList.remove('right-open'); };
+    const openRight = () => { app.classList.add('right-open'); app.classList.remove('left-open'); hideLogHint(); };
+    const closeAll = () => app.classList.remove('left-open', 'right-open');
+
+    const lb = $('toggleLeftBtn');
+    const rb = $('toggleRightBtn');
+    const scrim = $('panelScrim');
+    if (lb) lb.addEventListener('click', () => app.classList.contains('left-open') ? closeAll() : openLeft());
+    if (rb) rb.addEventListener('click', () => app.classList.contains('right-open') ? closeAll() : openRight());
+    if (scrim) scrim.addEventListener('click', closeAll);
+
+    // Close drawers with Escape
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeAll(); });
+
+    // Tapping a facility-map zone or a filter should auto-close the drawer on small screens
+    document.querySelectorAll('.sidebar .zone-node').forEach(n =>
+      n.addEventListener('click', () => { if (window.matchMedia('(max-width: 1100px)').matches) closeAll(); }));
+  }
+
+  // Reveal the "open the Log" arrow once the first vignette finishes. It only
+  // shows in compact mode (CSS gates it) and only if the Log isn't already open.
+  function showLogHint() {
+    const app = $('app');
+    if (!app.classList.contains('right-open')) app.classList.add('show-log-hint');
+  }
+  function hideLogHint() {
+    $('app').classList.remove('show-log-hint');
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>
